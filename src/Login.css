@@ -1,0 +1,572 @@
+/* =====================================================
+   LOGIN PAGE - PENINK
+   ===================================================== */
+
+.login-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px;
+  box-sizing: border-box;
+  font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 980px;
+  min-height: 580px;
+  background: #ffffff;
+  border-radius: 24px;
+  overflow: hidden;
+  display: flex;
+  box-shadow:
+    0 30px 60px -20px rgba(15, 23, 42, 0.18),
+    0 10px 25px -10px rgba(15, 23, 42, 0.10);
+}
+
+
+/* =====================================================
+   BRANDING KIRI
+   ===================================================== */
+
+.login-brand {
+  position: relative;
+  width: 42%;
+  padding: 50px 40px;
+  box-sizing: border-box;
+  background: linear-gradient(160deg, #0b1f3a 0%, #112b54 55%, #1d4ed8 160%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.login-brand-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  width: 100%;
+}
+
+.login-logo {
+  width: 180px;
+  max-width: 80%;
+  height: auto;
+  object-fit: contain;
+  margin: 0 auto 26px;
+  display: block;
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.25));
+}
+
+.login-brand-title {
+  margin: 0;
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: 4px;
+  line-height: 1.1;
+  color: #ffffff;
+}
+
+.login-brand-subtitle {
+  margin: 12px 0 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #cbd5e1;
+  letter-spacing: 0.3px;
+  line-height: 1.5;
+}
+
+.login-brand-divider {
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #60a5fa, transparent);
+  border-radius: 999px;
+  margin: 22px auto;
+}
+
+.login-brand-location {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.7;
+  color: #94a3b8;
+  letter-spacing: 0.2px;
+}
+
+.login-brand-decoration {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(96, 165, 250, 0.18), transparent 45%),
+    radial-gradient(circle at 85% 85%, rgba(59, 130, 246, 0.20), transparent 45%);
+}
+
+.login-brand-decoration::before,
+.login-brand-decoration::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.login-brand-decoration::before {
+  width: 320px;
+  height: 320px;
+  top: -140px;
+  right: -120px;
+}
+
+.login-brand-decoration::after {
+  width: 240px;
+  height: 240px;
+  bottom: -110px;
+  left: -90px;
+}
+
+
+/* =====================================================
+   FORM AREA (KANAN)
+   ===================================================== */
+
+.login-form-area {
+  flex: 1;
+  padding: 55px 55px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #ffffff;
+}
+
+.login-heading {
+  margin-bottom: 30px;
+}
+
+.login-heading h2 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.4px;
+  line-height: 1.2;
+}
+
+.login-heading p {
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+
+/* =====================================================
+   FIELD
+   ===================================================== */
+
+.login-field {
+  margin-bottom: 18px;
+}
+
+.login-field label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  letter-spacing: 0.1px;
+}
+
+.login-field .input {
+  width: 100%;
+  height: 46px;
+  box-sizing: border-box;
+  padding: 0 15px;
+  border: 1px solid #d9e1ec;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+}
+
+.login-field .input::placeholder {
+  color: #94a3b8;
+}
+
+.login-field .input:hover {
+  border-color: #c1cddd;
+}
+
+.login-field .input:focus {
+  border-color: #2563eb;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+.login-field select.input {
+  cursor: pointer;
+  appearance: auto;
+  padding-right: 12px;
+}
+
+
+/* =====================================================
+   PASSWORD TOGGLE
+   ===================================================== */
+
+.login-field .password-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.login-field .password-input-wrapper .input {
+  padding-right: 50px;
+}
+
+.login-field .password-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #64748b;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.login-field .password-toggle:hover {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.login-field .password-toggle:focus {
+  outline: none;
+  background: #eff6ff;
+}
+
+
+/* =====================================================
+   ERROR
+   ===================================================== */
+
+.login-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.login-error-icon {
+  flex-shrink: 0;
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+
+/* =====================================================
+   TOMBOL SUBMIT
+   ===================================================== */
+
+.login-form-area .button,
+.login-submit {
+  width: 100%;
+  height: 48px;
+  margin: 6px 0 0;
+  padding: 0 16px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  box-shadow: 0 8px 20px -8px rgba(37, 99, 235, 0.55);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+}
+
+.login-form-area .button:hover,
+.login-submit:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  box-shadow: 0 12px 25px -8px rgba(37, 99, 235, 0.65);
+  transform: translateY(-1px);
+}
+
+.login-form-area .button:active,
+.login-submit:active {
+  transform: translateY(0);
+}
+
+.login-form-area .button:disabled,
+.login-submit:disabled {
+  background: #93c5fd;
+  box-shadow: none;
+  transform: none;
+  cursor: not-allowed;
+}
+
+
+/* =====================================================
+   DIVIDER "ATAU"
+   ===================================================== */
+
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.login-divider::before,
+.login-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e5e9f0;
+}
+
+
+/* =====================================================
+   GOOGLE BUTTON
+   ===================================================== */
+
+.google-login-button {
+  width: 100%;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 16px;
+  box-sizing: border-box;
+  border: 1px solid #d9e1ec;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #1f2937;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.1s ease;
+}
+
+.google-login-button:hover {
+  background: #f8fafc;
+  border-color: #c1cddd;
+  box-shadow: 0 4px 12px -4px rgba(15, 23, 42, 0.12);
+}
+
+.google-login-button:active {
+  transform: scale(0.99);
+}
+
+.google-login-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.google-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.google-icon svg {
+  display: block;
+}
+
+
+/* =====================================================
+   SWITCH & FOOTER
+   ===================================================== */
+
+.login-switch {
+  margin-top: 22px;
+  text-align: center;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.login-switch button {
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  color: #2563eb;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.login-switch button:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+.login-footer {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #f1f5f9;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+
+/* =====================================================
+   RESPONSIVE TABLET
+   ===================================================== */
+
+@media (max-width: 900px) {
+  .login-brand {
+    width: 38%;
+    padding: 40px 25px;
+  }
+
+  .login-brand-title {
+    font-size: 30px;
+  }
+
+  .login-form-area {
+    padding: 45px 40px;
+  }
+}
+
+
+/* =====================================================
+   RESPONSIVE MOBILE
+   ===================================================== */
+
+@media (max-width: 768px) {
+  .login-page {
+    padding: 20px 15px;
+  }
+
+  .login-card {
+    flex-direction: column;
+    min-height: auto;
+    border-radius: 18px;
+  }
+
+  .login-brand {
+    width: 100%;
+    padding: 40px 25px 35px;
+  }
+
+  .login-logo {
+    width: 130px;
+    margin-bottom: 18px;
+  }
+
+  .login-brand-title {
+    font-size: 30px;
+    letter-spacing: 3px;
+  }
+
+  .login-brand-subtitle {
+    font-size: 13px;
+  }
+
+  .login-brand-divider {
+    margin: 16px auto;
+  }
+
+  .login-form-area {
+    padding: 35px 25px;
+  }
+
+  .login-heading h2 {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-page {
+    padding: 12px;
+  }
+
+  .login-card {
+    border-radius: 14px;
+  }
+
+  .login-brand {
+    padding: 32px 20px 28px;
+  }
+
+  .login-logo {
+    width: 110px;
+  }
+
+  .login-brand-title {
+    font-size: 26px;
+  }
+
+  .login-form-area {
+    padding: 28px 20px;
+  }
+
+  .login-heading h2 {
+    font-size: 22px;
+  }
+}
+
+/* =====================================================
+   FIX BROWSER AUTOFILL
+   ===================================================== */
+
+.login-field .input:-webkit-autofill,
+.login-field .input:-webkit-autofill:hover,
+.login-field .input:-webkit-autofill:focus,
+.login-field .input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #0f172a !important;
+  caret-color: #0f172a;
+  transition: background-color 5000s ease-in-out 0s;
+}

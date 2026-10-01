@@ -1,0 +1,334 @@
+/* =====================================================
+   STATISTIK PAGE
+   ===================================================== */
+
+.st {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  width: 100%;
+}
+
+.st,
+.st * {
+  text-align: left;
+}
+
+.st button {
+  text-align: center;
+}
+
+
+/* HEADER */
+
+.st__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.st__title {
+  margin: 0;
+  font-size: var(--font-size-2xl);
+  font-weight: 800;
+  color: var(--color-dark);
+  letter-spacing: -0.5px;
+}
+
+.st__subtitle {
+  margin: 6px 0 0;
+  font-size: var(--font-size-md);
+  color: var(--color-gray);
+}
+
+
+/* STAT CARDS */
+
+.st__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.st-stat {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  background: #FFFFFF;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s ease, box-shadow 0.18s ease;
+}
+
+.st-stat:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.st-stat__icon {
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+}
+
+.st-stat__body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.st-stat__label {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-gray);
+  letter-spacing: 0.2px;
+  margin-bottom: 4px;
+}
+
+.st-stat__value {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--color-dark);
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+}
+
+.st-stat--blue .st-stat__icon {
+  background: linear-gradient(135deg, #3B82F6, #2563EB);
+}
+.st-stat--indigo .st-stat__icon {
+  background: linear-gradient(135deg, #6366F1, #4F46E5);
+}
+.st-stat--green .st-stat__icon {
+  background: linear-gradient(135deg, #10B981, #059669);
+}
+.st-stat--orange .st-stat__icon {
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+}
+.st-stat--cyan .st-stat__icon {
+  background: linear-gradient(135deg, #06B6D4, #0891B2);
+}
+.st-stat--pink .st-stat__icon {
+  background: linear-gradient(135deg, #EC4899, #DB2777);
+}
+
+
+/* INFO CARD (USER) */
+
+.st__info {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);
+  border-radius: var(--radius-lg);
+  color: #FFFFFF;
+  box-shadow: 0 10px 30px -10px rgba(30, 58, 138, 0.35);
+}
+
+.st__info::before {
+  content: '';
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  right: -60px;
+  top: -100px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  pointer-events: none;
+}
+
+.st__info-icon {
+  position: relative;
+  z-index: 2;
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.st__info-body {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  min-width: 0;
+}
+
+.st__info-body strong {
+  display: block;
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 8px;
+}
+
+.st__info-body p {
+  margin: 4px 0;
+  font-size: var(--font-size-base);
+  color: rgba(255, 255, 255, 0.90);
+  line-height: 1.5;
+}
+
+.st__info-body b {
+  color: #FFFFFF;
+}
+
+
+/* CHART CARD */
+
+.st__chart-card {
+  background: #FFFFFF;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+}
+
+.st__chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.st__chart-title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-dark);
+}
+
+.st__chart-subtitle {
+  margin: 4px 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-gray);
+}
+
+.st__chart-body {
+  width: 100%;
+}
+
+
+/* FILTER */
+
+.st__filter {
+  display: inline-flex;
+  padding: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  gap: 2px;
+}
+
+.st__filter-btn {
+  padding: 7px 14px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-gray);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.st__filter-btn:hover {
+  color: var(--color-dark);
+}
+
+.st__filter-btn--active {
+  background: #FFFFFF;
+  color: var(--color-primary);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+}
+
+
+/* EMPTY */
+
+.st__empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--color-gray);
+  font-size: var(--font-size-md);
+}
+
+
+/* RESPONSIVE */
+
+@media (max-width: 1023px) {
+  .st__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .st {
+    gap: var(--space-4);
+  }
+
+  .st__title {
+    font-size: var(--font-size-xl);
+  }
+
+  .st__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+
+  .st-stat {
+    padding: var(--space-3);
+    gap: var(--space-3);
+  }
+
+  .st-stat__icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .st-stat__icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .st-stat__label {
+    font-size: 10px;
+  }
+
+  .st-stat__value {
+    font-size: 20px;
+  }
+
+  .st__chart-card,
+  .st__info {
+    padding: var(--space-4);
+  }
+
+  .st__chart-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .st__filter {
+    align-self: flex-start;
+  }
+}
