@@ -1,0 +1,123 @@
+/* ============================================ */
+/* UNIT KERJA PICKER - Searchable Dropdown */
+/* ============================================ */
+
+.ukp {
+  position: relative;
+  width: 100%;
+}
+
+.ukp__input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.ukp__icon {
+  position: absolute;
+  left: 12px;
+  color: #94A3B8;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ukp__input {
+  width: 100%;
+  padding: 10px 36px 10px 34px;
+  border: 1px solid #CBD5E1;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #1E293B;
+  background: #FFFFFF;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  font-family: inherit;
+}
+
+.ukp__input:focus {
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.ukp__clear {
+  position: absolute;
+  right: 10px;
+  background: #E2E8F0;
+  border: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  color: #475569;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.ukp__clear:hover {
+  background: #CBD5E1;
+}
+
+.ukp__dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  z-index: 100;
+  padding: 4px;
+}
+
+.ukp__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  text-align: left;
+  font-size: 13px;
+  color: #334155;
+  cursor: pointer;
+  transition: background 0.12s;
+  font-family: inherit;
+}
+
+.ukp__item:hover {
+  background: #F1F5F9;
+}
+
+.ukp__item--active {
+  background: #DBEAFE;
+  color: #1D4ED8;
+  font-weight: 600;
+}
+
+.ukp__item--public {
+  color: #0F766E;
+  font-weight: 600;
+  border-bottom: 1px solid #F1F5F9;
+  margin-bottom: 2px;
+}
+
+.ukp__item-icon {
+  flex-shrink: 0;
+  color: #F59E0B;
+}
+
+.ukp__empty {
+  padding: 12px;
+  text-align: center;
+  color: #94A3B8;
+  font-size: 13px;
+}

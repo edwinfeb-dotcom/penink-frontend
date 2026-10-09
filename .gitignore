@@ -36,3 +36,8 @@ App_backup_*.jsx
 App-backup*.jsx
 App_dashboard_v2_backup.jsx
 Login copy.jsx
+
+# Environment variables
+.env
+.env.local
+.env.*.local

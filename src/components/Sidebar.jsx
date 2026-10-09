@@ -7,6 +7,8 @@ import {
   Users,
   X,
   LogOut,
+  Shield,
+  Settings,
 } from 'lucide-react'
 import './Sidebar.css'
 
@@ -16,6 +18,8 @@ function Sidebar({
   setShowProfile,
   user,
   isAdmin,
+  isSuperAdmin,
+  isAdminUnit,      // ← BARU
   isOpen,
   onClose,
   onLogout,
@@ -38,7 +42,12 @@ function Sidebar({
     { key: 'users', label: 'Kelola User', icon: Users },
   ]
 
-  const initial = user?.name?.charAt(0).toUpperCase() || 'U'
+  // =====================================================
+  // CEK APA YANG BOLEH DIAKSES
+  // =====================================================
+  const canManageUsers = isAdmin || isAdminUnit
+  const canManageAliases = isSuperAdmin
+  const showManagementSection = canManageUsers || canManageAliases
 
   return (
     <>
@@ -51,11 +60,23 @@ function Sidebar({
       <aside className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}>
         <div className="sidebar__brand">
           <div className="sidebar__brand-top">
-            <img
-              src="/logo-kominfo-landak.png"
-              alt="Logo Diskominfo Landak"
-              className="sidebar__logo"
-            />
+            {/* Bungkus kedua logo di sini */}
+            <div className="sidebar__logos">
+              <img
+                src="/Lambang_Kabupaten_Landak.png"
+                alt="Lambang Kabupaten Landak"
+                className="sidebar__logo"
+              />
+              <div className="sidebar__logo-circle">
+                <img
+                  src="/logo-kominfo-landak.png"
+                  alt="Logo Diskominfo Landak"
+                  className="sidebar__logo"
+                />
+              </div>
+            </div>
+
+            {/* Tombol close tetap di sini, jangan diubah */}
             <button
               type="button"
               className="sidebar__close"
@@ -95,50 +116,59 @@ function Sidebar({
             })}
           </div>
 
-          {isAdmin && (
+          {showManagementSection && (
             <div className="sidebar__section">
               <span className="sidebar__section-title">PENGELOLAAN</span>
 
-              {menuAdmin.map((item) => {
-                const Icon = item.icon
-                return (
-                  <button
-                    key={item.key}
-                    type="button"
-                    className={`sidebar__item ${
-                      activePage === item.key ? 'sidebar__item--active' : ''
-                    }`}
-                    onClick={() => handleMenuClick(item.key)}
-                  >
-                    <Icon size={18} className="sidebar__icon" />
-                    <span>{item.label}</span>
-                  </button>
-                )
-              })}
+              {/* Menu Kelola User — untuk admin, super_admin, & admin_unit */}
+              {canManageUsers &&
+                menuAdmin.map((item) => {
+                  const Icon = item.icon
+                  return (
+                    <button
+                      key={item.key}
+                      type="button"
+                      className={`sidebar__item ${
+                        activePage === item.key ? 'sidebar__item--active' : ''
+                      }`}
+                      onClick={() => handleMenuClick(item.key)}
+                    >
+                      <Icon size={18} className="sidebar__icon" />
+                      <span>{item.label}</span>
+                    </button>
+                  )
+                })}
+
+              {/* Menu Kelola Alias — HANYA super_admin */}
+              {canManageAliases && (
+                <button
+                  type="button"
+                  className={`sidebar__item ${
+                    activePage === 'locked-aliases'
+                      ? 'sidebar__item--active'
+                      : ''
+                  }`}
+                  onClick={() => handleMenuClick('locked-aliases')}
+                >
+                  <Shield size={18} className="sidebar__icon" />
+                  <span>Kelola Alias</span>
+                </button>
+              )}
             </div>
           )}
         </nav>
 
-                <div className="sidebar__footer">
-          <div className="sidebar__user">
-            {user?.avatar ? (
-              <img
-                src={user.avatar}
-                alt={user.name}
-                className="sidebar__avatar-img"
-              />
-            ) : (
-              <div className="sidebar__avatar">{initial}</div>
-            )}
-            <div className="sidebar__user-info">
-              <span className="sidebar__user-name">
-                {user?.name || 'Pengguna'}
-              </span>
-              <span className="sidebar__user-role">
-                {(user?.role || 'user').toUpperCase()}
-              </span>
-            </div>
-          </div>
+        <div className="sidebar__footer">
+          <button
+            type="button"
+            className={`sidebar__item ${
+              activePage === 'pengaturan' ? 'sidebar__item--active' : ''
+            }`}
+            onClick={() => handleMenuClick('pengaturan')}
+          >
+            <Settings size={18} className="sidebar__icon" />
+            <span>Pengaturan</span>
+          </button>
 
           <button
             type="button"

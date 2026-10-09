@@ -1516,3 +1516,284 @@ body {
     margin-left: 0;
   }
 }
+/* =====================================================
+   MODE RINGKAS
+   ===================================================== */
+html[data-compact="true"] .container {
+  padding: 12px 16px !important;
+}
+
+html[data-compact="true"] .card {
+  padding: 16px !important;
+}
+
+html[data-compact="true"] .sidebar {
+  padding: var(--space-3) var(--space-3) !important;
+}
+
+html[data-compact="true"] .sidebar__item {
+  min-height: 36px !important;
+  padding: 8px var(--space-3) !important;
+}
+
+/* =====================================================
+   MODE RINGKAS — VERSI LENGKAP
+   ===================================================== */
+html[data-compact="true"] .container {
+  padding: 10px 14px !important;
+}
+
+html[data-compact="true"] .card {
+  padding: 14px 18px !important;
+}
+
+/* ============ SIDEBAR ============ */
+html[data-compact="true"] .sidebar {
+  padding: 12px 10px !important;
+}
+
+html[data-compact="true"] .sidebar__brand {
+  padding: 6px 6px 14px !important;
+}
+
+html[data-compact="true"] .sidebar__title {
+  margin-top: 6px !important;
+  font-size: 20px !important;
+}
+
+html[data-compact="true"] .sidebar__subtitle,
+html[data-compact="true"] .sidebar__location {
+  margin-top: 2px !important;
+  font-size: 10px !important;
+  line-height: 1.3 !important;
+}
+
+html[data-compact="true"] .sidebar__nav {
+  padding-top: 10px !important;
+  gap: 10px !important;
+}
+
+html[data-compact="true"] .sidebar__section {
+  gap: 1px !important;
+}
+
+html[data-compact="true"] .sidebar__section-title {
+  padding: 0 10px 4px !important;
+  font-size: 9px !important;
+}
+
+html[data-compact="true"] .sidebar__item {
+  min-height: 32px !important;
+  padding: 6px 10px !important;
+  font-size: 13px !important;
+}
+
+html[data-compact="true"] .sidebar__footer {
+  margin-top: 10px !important;
+  padding-top: 10px !important;
+}
+
+/* ============ HEADER ============ */
+html[data-compact="true"] .header {
+  padding: 10px 20px !important;
+}
+
+html[data-compact="true"] .header__title {
+  font-size: 16px !important;
+}
+
+html[data-compact="true"] .header__subtitle {
+  font-size: 11px !important;
+}
+
+/* ============ DASHBOARD ============ */
+html[data-compact="true"] .dashboard {
+  gap: 12px !important;
+}
+
+html[data-compact="true"] .dashboard__hero {
+  padding: 20px 24px !important;
+}
+
+html[data-compact="true"] .dashboard__hero-title {
+  font-size: 22px !important;
+}
+
+html[data-compact="true"] .dashboard__hero-subtitle {
+  margin-top: 4px !important;
+  font-size: 12px !important;
+}
+
+html[data-compact="true"] .dashboard__hero-actions {
+  margin-top: 14px !important;
+  gap: 8px !important;
+}
+
+html[data-compact="true"] .dashboard__stats {
+  gap: 10px !important;
+}
+
+html[data-compact="true"] .dash-stat {
+  padding: 12px 14px !important;
+}
+
+html[data-compact="true"] .dash-stat__value {
+  font-size: 22px !important;
+}
+
+html[data-compact="true"] .dash-stat__label {
+  font-size: 10px !important;
+}
+
+html[data-compact="true"] .dashboard__chart-card {
+  padding: 16px 18px !important;
+}
+
+html[data-compact="true"] .dashboard__list-card {
+  padding: 16px 18px !important;
+}
+
+html[data-compact="true"] .dashboard__link-item {
+  padding: 12px 14px !important;
+  margin-bottom: 6px !important;
+}
+
+/* ============ SHORT LINK ============ */
+html[data-compact="true"] .sl {
+  gap: 14px !important;
+}
+
+html[data-compact="true"] .sl__form-card,
+html[data-compact="true"] .sl__list-card {
+  padding: 16px 18px !important;
+}
+
+html[data-compact="true"] .sl__item {
+  padding: 12px 14px !important;
+  margin-bottom: 8px !important;
+}
+
+html[data-compact="true"] .sl__input {
+  height: 38px !important;
+  padding: 0 12px !important;
+  font-size: 13px !important;
+}
+
+/* ============ LINK HUB ============ */
+html[data-compact="true"] .lh {
+  gap: 14px !important;
+}
+
+html[data-compact="true"] .lh__form-card,
+html[data-compact="true"] .lh__list-card {
+  padding: 16px 18px !important;
+}
+
+html[data-compact="true"] .lh__item {
+  padding: 12px 14px !important;
+  margin-bottom: 8px !important;
+}
+
+html[data-compact="true"] .lh__input {
+  height: 38px !important;
+  padding: 0 12px !important;
+  font-size: 13px !important;
+}
+
+/* ============ STATISTIK ============ */
+html[data-compact="true"] .st__stats {
+  gap: 10px !important;
+}
+
+html[data-compact="true"] .st-stat {
+  padding: 12px 14px !important;
+}
+
+html[data-compact="true"] .st-stat__value {
+  font-size: 22px !important;
+}
+
+html[data-compact="true"] .st-stat__label {
+  font-size: 10px !important;
+}
+
+html[data-compact="true"] .st__chart-card {
+  padding: 16px 18px !important;
+}
+
+/* ============ USERS / KELOLA USER ============ */
+html[data-compact="true"] .us {
+  gap: 14px !important;
+}
+
+html[data-compact="true"] .us__form-card,
+html[data-compact="true"] .us__list-card {
+  padding: 16px 18px !important;
+}
+
+html[data-compact="true"] .us__item {
+  padding: 12px 14px !important;
+  margin-bottom: 8px !important;
+}
+
+html[data-compact="true"] .us__input {
+  height: 38px !important;
+  padding: 0 12px !important;
+  font-size: 13px !important;
+}
+
+html[data-compact="true"] .us__avatar {
+  width: 34px !important;
+  height: 34px !important;
+  font-size: 14px !important;
+}
+
+/* ============ FEEDBACK / SARAN ============ */
+html[data-compact="true"] .fb {
+  gap: 14px !important;
+}
+
+html[data-compact="true"] .fb__form-card,
+html[data-compact="true"] .fb__list-card {
+  padding: 16px 18px !important;
+}
+
+html[data-compact="true"] .fb__item {
+  padding: 12px 14px !important;
+  margin-bottom: 8px !important;
+}
+
+/* ============ PROFILE / PENGATURAN ============ */
+html[data-compact="true"] .pf,
+html[data-compact="true"] .pengaturan {
+  gap: 12px !important;
+}
+
+html[data-compact="true"] .pf__card,
+html[data-compact="true"] .pengaturan__section {
+  padding: 16px 18px !important;
+  margin-bottom: 12px !important;
+}
+
+html[data-compact="true"] .pf__banner {
+  padding: 20px 24px !important;
+}
+
+html[data-compact="true"] .pf__input,
+html[data-compact="true"] .pengaturan__field select {
+  height: 38px !important;
+  padding: 0 12px !important;
+  font-size: 13px !important;
+}
+
+html[data-compact="true"] .pf__info-item {
+  padding: 12px 14px !important;
+}
+
+html[data-compact="true"] .pengaturan__toggle-row {
+  padding: 10px 4px !important;
+}
+
+html[data-compact="true"] .pengaturan__about-row {
+  padding: 8px 0 !important;
+}

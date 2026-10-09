@@ -15,6 +15,8 @@ import {
   Check,
 } from 'lucide-react'
 import './Profile.css'
+import { useConfirm } from './ConfirmModal'
+import { useToast } from './Toast'
 
 function Profile({
   API_URL,
@@ -42,12 +44,15 @@ function Profile({
   handleUpdateProfile,
   setShowProfile,
 }) {
+  const confirm = useConfirm()
+  const toast = useToast()
+
   const initial = user?.name?.charAt(0).toUpperCase() || 'U'
 
   const [showAvatarPicker, setShowAvatarPicker] = useState(false)
-    const [selectedAvatar, setSelectedAvatar] = useState(null)
+  const [selectedAvatar, setSelectedAvatar] = useState(null)
 
-    const avatarOptions = [
+  const avatarOptions = [
     // === AVATAAARS (kartun) ===
     'https://api.dicebear.com/7.x/avataaars/svg?seed=Fajar&backgroundColor=b6e3f4',
     'https://api.dicebear.com/7.x/avataaars/svg?seed=Matahari&backgroundColor=c0aede',
@@ -79,49 +84,48 @@ function Profile({
     'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Hebat&backgroundColor=b6e3f4',
   ]
 
-    const handleOpenPicker = () => {
+  const handleOpenPicker = () => {
     setSelectedAvatar(user?.avatar || null)
     setShowAvatarPicker(true)
   }
 
   const handleConfirmAvatar = async () => {
     if (!selectedAvatar) {
-      alert('Pilih avatar terlebih dahulu.')
+      toast.warning('Pilih avatar terlebih dahulu.')
       return
     }
 
-    const yakin = window.confirm(
-      'Apakah kamu yakin ingin mengganti avatar?'
-    )
+    const yakin = await confirm({
+      title: 'Ganti Avatar',
+      message: 'Apakah kamu yakin ingin mengganti avatar?',
+      confirmText: 'Ya, Ganti',
+      cancelText: 'Batal',
+      type: 'warning',
+    })
 
     if (!yakin) return
 
     try {
       const token = localStorage.getItem('token')
 
-      const response = await fetch(
-        `${API_URL}/api/profile`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            name: user?.name || '',
-            email: user?.email || '',
-            avatar: selectedAvatar,
-          }),
-        }
-      )
+      const response = await fetch(`${API_URL}/api/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: user?.name || '',
+          email: user?.email || '',
+          avatar: selectedAvatar,
+        }),
+      })
 
       const result = await response.json()
 
       if (!response.ok) {
-        throw new Error(
-          result.message || 'Gagal menyimpan avatar.'
-        )
+        throw new Error(result.message || 'Gagal menyimpan avatar.')
       }
 
       if (onUpdateUser) {
@@ -130,9 +134,9 @@ function Profile({
 
       setShowAvatarPicker(false)
       setSelectedAvatar(null)
-      alert('Avatar berhasil diperbarui.')
+      toast.success('Avatar berhasil diperbarui.')
     } catch (error) {
-      alert(error.message)
+      toast.error(error.message)
     }
   }
 
@@ -360,7 +364,7 @@ function Profile({
             <button
               type="button"
               className="pf__avatar-edit"
-               onClick={handleOpenPicker}
+              onClick={handleOpenPicker}
               title="Ganti avatar"
             >
               <Camera size={14} />

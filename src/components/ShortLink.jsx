@@ -14,12 +14,15 @@ import {
 } from 'lucide-react'
 import { QRCodeCanvas } from 'qrcode.react'
 import './ShortLink.css'
+import { useToast } from './Toast'
 
 function ShortLink({
+  user,
   API_URL,
   url, setUrl,
   title, setTitle,
   alias, setAlias,
+  type, setType,
   loading,
   shortUrl,
   shortLinks,
@@ -37,6 +40,7 @@ function ShortLink({
   handleToggleShortLink,
   handleDeleteShortLink,
 }) {
+  const toast = useToast()
   const [showForm, setShowForm] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [showQrId, setShowQrId] = useState(null)
@@ -179,7 +183,7 @@ function ShortLink({
             </div>
 
             <div className="sl__qr-wrapper">
-                <QRCodeCanvas
+              <QRCodeCanvas
                 id="qr-code"
                 value={`${shortUrl}?source=qr`}
                 size={400}
@@ -188,12 +192,12 @@ function ShortLink({
                 fgColor="#000000"
                 includeMargin={true}
                 imageSettings={{
-                    src: '/Lambang_Kabupaten_Landak.png',
-                    height: 80,
-                    width: 68,
-                    excavate: true,
+                  src: '/Lambang_Kabupaten_Landak.png',
+                  height: 80,
+                  width: 68,
+                  excavate: true,
                 }}
-                />
+              />
             </div>
           </div>
         </div>
@@ -379,7 +383,7 @@ function ShortLink({
                       navigator.clipboard.writeText(
                         `${API_URL}/${link.short_code}`
                       )
-                      alert('Link berhasil disalin')
+                      toast.success('Link berhasil disalin')
                     }}
                   >
                     <Copy size={15} />
@@ -417,28 +421,26 @@ function ShortLink({
 
                 {showQrId === link.id && (
                   <div className="sl__qr-popup">
-                    
                     <QRCodeCanvas
-                    id={`qr-${link.id}`}
-                    value={`${API_URL}/${link.short_code}`}
-                    size={400}
-                    level="H"
-                    imageSettings={{
+                      id={`qr-${link.id}`}
+                      value={`${API_URL}/${link.short_code}?source=qr`}
+                      size={400}
+                      level="H"
+                      imageSettings={{
                         src: '/Lambang_Kabupaten_Landak.png',
                         height: 80,
                         width: 68,
                         excavate: true,
-                    }}
+                      }}
                     />
                     <button
-                    type="button"
-                    className="sl__btn-secondary"
-                    onClick={() => downloadQR(link.id)}
+                      type="button"
+                      className="sl__btn-secondary"
+                      onClick={() => downloadQR(link.id)}
                     >
-                        <Download size={14} /> Download QR
-                        </button>
-                        
-                        </div>
+                      <Download size={14} /> Download QR
+                    </button>
+                  </div>
                 )}
               </div>
             ))}

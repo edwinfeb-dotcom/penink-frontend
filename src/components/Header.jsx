@@ -4,6 +4,7 @@ import './Header.css'
 function Header({
   activePage,
   user,
+  isSuperAdmin,
   onMenuClick,
   onProfileClick,
 }) {
@@ -15,6 +16,7 @@ function Header({
     saran: { title: 'Saran & Masukan', subtitle: 'Masukan untuk PENINK' },
     'feedback-list': { title: 'Saran & Masukan', subtitle: 'Daftar masukan pengguna' },
     users: { title: 'Kelola User', subtitle: 'Manajemen pengguna sistem' },
+    'locked-aliases': { title: 'Kelola Alias', subtitle: 'Alias yang dikunci untuk OPD tertentu' },
   }
 
   const current = pageTitles[activePage] || {
@@ -62,7 +64,7 @@ function Header({
               {user?.name || 'Pengguna'}
             </span>
             <span className="header__user-role">
-              {(user?.role || 'user').toUpperCase()}
+              {(user?.role || 'user').toUpperCase().replace('_', ' ')}
             </span>
           </div>
         </button>

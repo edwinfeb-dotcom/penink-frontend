@@ -413,6 +413,19 @@
   border-color: #CBD5E1;
 }
 
+.pf__card-body > .pf__btn-secondary {
+  align-self: flex-start;
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  color: #FFFFFF;
+  border: none;
+  box-shadow: 0 8px 20px -8px rgba(245, 158, 11, 0.5);
+}
+
+.pf__card-body > .pf__btn-secondary:hover {
+  background: linear-gradient(135deg, #D97706, #B45309);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 25px -8px rgba(245, 158, 11, 0.6);
+}
 /* BANNER CONTENT */
 
 .pf__banner-content {
@@ -694,6 +707,7 @@
     width: 100%;
     justify-content: center;
   }
+  
 
   .pf__readonly-item {
     grid-template-columns: 1fr;

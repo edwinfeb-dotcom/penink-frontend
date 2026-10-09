@@ -617,3 +617,20 @@
   width: 140px !important;
   height: 140px !important;
 }
+/* ============================================ */
+/* BADGE LOCK DI DAFTAR SHORT LINK */
+/* ============================================ */
+
+.sl__item-locked {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  padding: 3px 8px;
+  background: #FEF3C7;
+  color: #92400E;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  width: fit-content;
+}

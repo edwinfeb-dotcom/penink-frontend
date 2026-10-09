@@ -411,6 +411,12 @@
   background: #F1F5F9;
   color: #475569;
 }
+.us__badge--super {
+  background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+  color: #92400E;
+  border: 1px solid #FCD34D;
+  font-weight: 700;
+}
 
 .us__item-email {
   font-size: var(--font-size-sm);
@@ -551,5 +557,99 @@
 
 .us__btn-icon:disabled {
   opacity: 0.4;
+  cursor: not-allowed;
+}
+/* =====================================================
+   UNIT KERJA PICKER (Searchable Dropdown)
+   ===================================================== */
+.us__unit-picker {
+  position: relative;
+  width: 100%;
+}
+
+.us__unit-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 100;
+  max-height: 260px;
+  overflow-y: auto;
+  background: #ffffff;
+  border: 1px solid #d9e1ec;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  padding: 4px;
+}
+
+.us__unit-dropdown__empty {
+  padding: 16px;
+  text-align: center;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.us__unit-dropdown__item {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: #1e293b;
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.us__unit-dropdown__item:hover {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.us__unit-dropdown__item--active {
+  background: #2563eb;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.us__unit-dropdown__item--active:hover {
+  background: #1d4ed8;
+}
+/* ============ BADGE ADMIN UNIT ============ */
+.us__badge--admin-unit {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+/* ============ INFO BANNER ============ */
+.us__info-banner {
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #92400e;
+  line-height: 1.5;
+}
+
+/* ============ FIELD HINT ============ */
+.us__field-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #92400e;
+  line-height: 1.4;
+}
+
+/* ============ LOCKED INPUT ============ */
+.us__input--locked {
+  background: #f1f5f9 !important;
+  color: #64748b !important;
   cursor: not-allowed;
 }

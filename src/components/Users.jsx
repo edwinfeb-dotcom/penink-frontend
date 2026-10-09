@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import {
   Plus,
   Search,
@@ -12,7 +12,7 @@ import {
 import './Users.css'
 
 function Users({
-    user,
+  user,
   adminUsers,
   userSearch,
   setUserSearch,
@@ -44,12 +44,96 @@ function Users({
 }) {
   const [showForm, setShowForm] = useState(false)
 
+  // ============ STATE UNIT KERJA PICKER (ADD FORM) ============
+  const [addUnitKerjaSearch, setAddUnitKerjaSearch] = useState('')
+  const [showAddUnitKerjaDropdown, setShowAddUnitKerjaDropdown] = useState(false)
+
+  // ============ STATE UNIT KERJA PICKER (EDIT FORM) ============
+  const [editUnitKerjaSearch, setEditUnitKerjaSearch] = useState('')
+  const [showEditUnitKerjaDropdown, setShowEditUnitKerjaDropdown] = useState(false)
+
+  // ============ CEK ROLE USER YANG SEDANG LOGIN ============
+  const currentRole = String(user?.role || '').toLowerCase()
+  const isSuperAdmin = currentRole === 'super_admin'
+  const isAdminUnit = currentRole === 'admin_unit'
+  const isGlobalAdmin = currentRole === 'admin'
+
+  // Kalau admin_unit login, unit kerja terkunci ke OPD-nya
+  const lockedUnitKerjaId = isAdminUnit ? user?.unit_kerja_id : null
+  const lockedUnitKerjaName =
+    isAdminUnit && unitKerjas.length > 0
+      ? unitKerjas.find((u) => String(u.id) === String(user?.unit_kerja_id))
+          ?.nama_unit_kerja || ''
+      : ''
+
   const toggleAddForm = () => {
     setShowAddUserForm(!showAddUserForm)
     setShowEditUserForm(false)
     setUserFormError('')
     setEditUserError('')
     setShowForm(!showForm)
+  }
+
+  // ============ HELPER: SORT + FUZZY SEARCH ============
+  const filterUnitKerjas = (list, keyword) => {
+    const sorted = [...list].sort((a, b) =>
+      a.nama_unit_kerja.localeCompare(b.nama_unit_kerja, 'id', {
+        sensitivity: 'base',
+      })
+    )
+
+    const search = keyword.trim().toLowerCase().replace(/\s+/g, '')
+    if (!search) return sorted
+
+    const exactMatches = []
+    const fuzzyMatches = []
+
+    for (const unit of sorted) {
+      const compact = unit.nama_unit_kerja.toLowerCase().replace(/\s+/g, '')
+
+      if (compact.includes(search)) {
+        exactMatches.push(unit)
+        continue
+      }
+
+      let i = 0
+      for (const char of compact) {
+        if (char === search[i]) i++
+        if (i === search.length) break
+      }
+      if (i === search.length) {
+        fuzzyMatches.push(unit)
+      }
+    }
+
+    return [...exactMatches, ...fuzzyMatches]
+  }
+
+  const addFilteredUnitKerjas = useMemo(
+    () => filterUnitKerjas(unitKerjas, addUnitKerjaSearch),
+    [unitKerjas, addUnitKerjaSearch]
+  )
+
+  const editFilteredUnitKerjas = useMemo(
+    () => filterUnitKerjas(unitKerjas, editUnitKerjaSearch),
+    [unitKerjas, editUnitKerjaSearch]
+  )
+
+  // ============ HELPER: BADGE UNTUK ROLE ============
+  const getRoleBadgeClass = (role) => {
+    const r = String(role || '').toLowerCase()
+    if (r === 'super_admin') return 'us__badge--super'
+    if (r === 'admin') return 'us__badge--admin'
+    if (r === 'admin_unit') return 'us__badge--admin-unit'
+    return 'us__badge--user'
+  }
+
+  const getRoleLabel = (role) => {
+    const r = String(role || '').toLowerCase()
+    if (r === 'super_admin') return 'SUPER ADMIN'
+    if (r === 'admin') return 'ADMIN'
+    if (r === 'admin_unit') return 'ADMIN UNIT'
+    return 'USER'
   }
 
   return (
@@ -60,7 +144,9 @@ function Users({
         <div>
           <h1 className="us__title">Kelola User</h1>
           <p className="us__subtitle">
-            Kelola data pengguna PENINK
+            {isAdminUnit
+              ? `Kelola pengguna unit kerja ${lockedUnitKerjaName || 'Anda'}`
+              : 'Kelola data pengguna PENINK'}
           </p>
         </div>
 
@@ -73,6 +159,14 @@ function Users({
           <span>{showAddUserForm ? 'Tutup' : 'Tambah User'}</span>
         </button>
       </div>
+
+      {/* INFO BANNER UNTUK ADMIN_UNIT */}
+      {isAdminUnit && (
+        <div className="us__info-banner">
+          🔒 Anda login sebagai <b>Admin Unit</b>. Anda hanya dapat mengelola
+          user dari unit kerja <b>{lockedUnitKerjaName || 'Anda'}</b>.
+        </div>
+      )}
 
       {/* FORM TAMBAH USER */}
       {showAddUserForm && (
@@ -175,29 +269,101 @@ function Users({
                   }
                 >
                   <option value="user">USER</option>
-                  <option value="admin">ADMIN</option>
+
+                  {/* ADMIN_UNIT: hanya tampil kalau login sebagai super_admin atau admin global */}
+                  {(isSuperAdmin || isGlobalAdmin) && (
+                    <option value="admin_unit">ADMIN UNIT</option>
+                  )}
+
+                  {/* ADMIN & SUPER_ADMIN: hanya super_admin */}
+                  {isSuperAdmin && (
+                    <>
+                      <option value="admin">ADMIN</option>
+                      <option value="super_admin">SUPER ADMIN</option>
+                    </>
+                  )}
                 </select>
+
+                {/* Hint khusus admin_unit */}
+                {userForm.role === 'admin_unit' && (
+                  <small className="us__field-hint">
+                    ⚠️ Admin Unit wajib memiliki unit kerja. Hanya bisa mengelola
+                    user dari unit kerja yang sama.
+                  </small>
+                )}
               </div>
 
               <div className="us__field">
                 <label>Unit Kerja</label>
-                <select
-                  className="us__input"
-                  value={userForm.unit_kerja_id}
-                  onChange={(e) =>
-                    setUserForm({
-                      ...userForm,
-                      unit_kerja_id: e.target.value,
-                    })
-                  }
-                >
-                  <option value="">-- Pilih Unit Kerja --</option>
-                  {unitKerjas.map((unit) => (
-                    <option key={unit.id} value={unit.id}>
-                      {unit.nama_unit_kerja}
-                    </option>
-                  ))}
-                </select>
+
+                {/* Kalau admin_unit login, tampilkan readonly */}
+                {isAdminUnit ? (
+                  <input
+                    className="us__input us__input--locked"
+                    type="text"
+                    value={lockedUnitKerjaName || '(Unit kerja Anda)'}
+                    readOnly
+                    title="Unit kerja terkunci ke OPD Anda"
+                  />
+                ) : (
+                  <div className="us__unit-picker">
+                    <input
+                      className="us__input"
+                      type="text"
+                      placeholder="🔍 Ketik untuk cari... (mis: kominfo)"
+                      value={addUnitKerjaSearch}
+                      onChange={(e) => {
+                        setAddUnitKerjaSearch(e.target.value)
+                        setShowAddUnitKerjaDropdown(true)
+                        if (userForm.unit_kerja_id) {
+                          setUserForm({ ...userForm, unit_kerja_id: '' })
+                        }
+                      }}
+                      onFocus={() => setShowAddUnitKerjaDropdown(true)}
+                      onBlur={() =>
+                        setTimeout(
+                          () => setShowAddUnitKerjaDropdown(false),
+                          200
+                        )
+                      }
+                      autoComplete="off"
+                    />
+
+                    {showAddUnitKerjaDropdown && (
+                      <div className="us__unit-dropdown">
+                        {addFilteredUnitKerjas.length === 0 ? (
+                          <div className="us__unit-dropdown__empty">
+                            Tidak ada unit kerja yang cocok
+                          </div>
+                        ) : (
+                          addFilteredUnitKerjas.map((unit) => (
+                            <button
+                              key={unit.id}
+                              type="button"
+                              className={`us__unit-dropdown__item ${
+                                String(userForm.unit_kerja_id) ===
+                                String(unit.id)
+                                  ? 'us__unit-dropdown__item--active'
+                                  : ''
+                              }`}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => {
+                                setUserForm({
+                                  ...userForm,
+                                  unit_kerja_id: unit.id,
+                                })
+                                setAddUnitKerjaSearch(unit.nama_unit_kerja)
+                                setShowAddUnitKerjaDropdown(false)
+                              }}
+                            >
+                              {unit.nama_unit_kerja}
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -208,6 +374,7 @@ function Users({
                 onClick={() => {
                   setShowAddUserForm(false)
                   setUserFormError('')
+                  setAddUnitKerjaSearch('')
                 }}
               >
                 Batal
@@ -342,29 +509,98 @@ function Users({
                   }
                 >
                   <option value="user">USER</option>
-                  <option value="admin">ADMIN</option>
+
+                  {(isSuperAdmin || isGlobalAdmin) && (
+                    <option value="admin_unit">ADMIN UNIT</option>
+                  )}
+
+                  {isSuperAdmin && (
+                    <>
+                      <option value="admin">ADMIN</option>
+                      <option value="super_admin">SUPER ADMIN</option>
+                    </>
+                  )}
                 </select>
+
+                {editUserForm.role === 'admin_unit' && (
+                  <small className="us__field-hint">
+                    ⚠️ Admin Unit wajib memiliki unit kerja.
+                  </small>
+                )}
               </div>
 
               <div className="us__field">
                 <label>Unit Kerja</label>
-                <select
-                  className="us__input"
-                  value={editUserForm.unit_kerja_id}
-                  onChange={(e) =>
-                    setEditUserForm({
-                      ...editUserForm,
-                      unit_kerja_id: e.target.value,
-                    })
-                  }
-                >
-                  <option value="">-- Pilih Unit Kerja --</option>
-                  {unitKerjas.map((unit) => (
-                    <option key={unit.id} value={unit.id}>
-                      {unit.nama_unit_kerja}
-                    </option>
-                  ))}
-                </select>
+
+                {isAdminUnit ? (
+                  <input
+                    className="us__input us__input--locked"
+                    type="text"
+                    value={lockedUnitKerjaName || '(Unit kerja Anda)'}
+                    readOnly
+                  />
+                ) : (
+                  <div className="us__unit-picker">
+                    <input
+                      className="us__input"
+                      type="text"
+                      placeholder="🔍 Ketik untuk cari... (mis: kominfo)"
+                      value={editUnitKerjaSearch}
+                      onChange={(e) => {
+                        setEditUnitKerjaSearch(e.target.value)
+                        setShowEditUnitKerjaDropdown(true)
+                        if (editUserForm.unit_kerja_id) {
+                          setEditUserForm({
+                            ...editUserForm,
+                            unit_kerja_id: '',
+                          })
+                        }
+                      }}
+                      onFocus={() => setShowEditUnitKerjaDropdown(true)}
+                      onBlur={() =>
+                        setTimeout(
+                          () => setShowEditUnitKerjaDropdown(false),
+                          200
+                        )
+                      }
+                      autoComplete="off"
+                    />
+
+                    {showEditUnitKerjaDropdown && (
+                      <div className="us__unit-dropdown">
+                        {editFilteredUnitKerjas.length === 0 ? (
+                          <div className="us__unit-dropdown__empty">
+                            Tidak ada unit kerja yang cocok
+                          </div>
+                        ) : (
+                          editFilteredUnitKerjas.map((unit) => (
+                            <button
+                              key={unit.id}
+                              type="button"
+                              className={`us__unit-dropdown__item ${
+                                String(editUserForm.unit_kerja_id) ===
+                                String(unit.id)
+                                  ? 'us__unit-dropdown__item--active'
+                                  : ''
+                              }`}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => {
+                                setEditUserForm({
+                                  ...editUserForm,
+                                  unit_kerja_id: unit.id,
+                                })
+                                setEditUnitKerjaSearch(unit.nama_unit_kerja)
+                                setShowEditUnitKerjaDropdown(false)
+                              }}
+                            >
+                              {unit.nama_unit_kerja}
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -376,6 +612,7 @@ function Users({
                   setShowEditUserForm(false)
                   setEditingUserId(null)
                   setEditUserError('')
+                  setEditUnitKerjaSearch('')
                 }}
               >
                 Batal
@@ -431,8 +668,6 @@ function Users({
             {filteredUsers.map((adminUser) => {
               const initial =
                 adminUser.name?.charAt(0).toUpperCase() || 'U'
-              const isAdminRole =
-                String(adminUser.role || '').toLowerCase() === 'admin'
 
               return (
                 <div key={adminUser.id} className="us__item">
@@ -445,18 +680,12 @@ function Users({
                           {adminUser.name}
                         </strong>
                         <span
-                          className={`us__badge ${
-                            isAdminRole
-                              ? 'us__badge--admin'
-                              : 'us__badge--user'
-                          }`}
+                          className={`us__badge ${getRoleBadgeClass(
+                            adminUser.role
+                          )}`}
                         >
-                          {isAdminRole ? (
-                            <Shield size={10} />
-                          ) : (
-                            <UserIcon size={10} />
-                          )}
-                          {String(adminUser.role || '').toUpperCase()}
+                          <Shield size={10} />
+                          {getRoleLabel(adminUser.role)}
                         </span>
                       </div>
 
@@ -474,25 +703,29 @@ function Users({
 
                   <div className="us__item-actions">
                     <button
-                    type="button"
-                    className="us__btn-icon"
-                    onClick={() => handleEditUser(adminUser)}
-                    title="Edit"
+                      type="button"
+                      className="us__btn-icon"
+                      onClick={() => {
+                        handleEditUser(adminUser)
+                        setEditUnitKerjaSearch(
+                          adminUser.unit_kerja?.nama_unit_kerja || ''
+                        )
+                      }}
+                      title="Edit"
                     >
-                        
-                        <Pencil size={15} />
-                        </button>
-                        
-                        <button
-                        type="button"
-                        className="us__btn-icon us__btn-icon--danger"
-                        onClick={() => handleDeleteUser(adminUser)}
-                        title="Hapus"
-                        disabled={adminUser.id === user?.id}
-                        >
-                            <Trash2 size={15} />
+                      <Pencil size={15} />
                     </button>
-                    </div>
+
+                    <button
+                      type="button"
+                      className="us__btn-icon us__btn-icon--danger"
+                      onClick={() => handleDeleteUser(adminUser)}
+                      title="Hapus"
+                      disabled={adminUser.id === user?.id}
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
                 </div>
               )
             })}

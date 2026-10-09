@@ -1,7 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import './Login.css'
+import { useToast } from './components/Toast'
 
 function Login({ onLogin }) {
+  const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
+  const toast = useToast()
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -15,6 +19,9 @@ function Login({ onLogin }) {
   const [userType, setUserType] = useState('UMUM')
   const [unitKerjas, setUnitKerjas] = useState([])
 
+  const [unitKerjaSearch, setUnitKerjaSearch] = useState('')
+  const [showUnitKerjaDropdown, setShowUnitKerjaDropdown] = useState(false)
+
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
@@ -24,7 +31,6 @@ function Login({ onLogin }) {
       window.location.search
     ).get('google_token')
 
-    console.log('GOOGLE TOKEN:', googleToken)
     if (!googleToken) return
 
     const handleGoogleLogin = async () => {
@@ -35,7 +41,7 @@ function Login({ onLogin }) {
         localStorage.setItem('token', googleToken)
 
         const response = await fetch(
-          'http://127.0.0.1:8000/api/user',
+          `${API_URL}/api/user`,
           {
             headers: {
               'Accept': 'application/json',
@@ -45,9 +51,6 @@ function Login({ onLogin }) {
         )
 
         const result = await response.json()
-
-        console.log('GOOGLE USER RESPONSE:', result)
-        console.log('GOOGLE RESPONSE STATUS:', response.status)
 
         if (!response.ok) {
           throw new Error(
@@ -77,7 +80,7 @@ function Login({ onLogin }) {
     }
 
     handleGoogleLogin()
-  }, [onLogin])
+  }, []) // <--- PERBAIKAN: Ubah dari [onLogin] menjadi []
 
   useEffect(() => {
     if (!isRegister) return
@@ -85,7 +88,7 @@ function Login({ onLogin }) {
     const fetchUnitKerjas = async () => {
       try {
         const response = await fetch(
-          'http://127.0.0.1:8000/api/unit-kerjas'
+          `${API_URL}/api/unit-kerjas`
         )
 
         const result = await response.json()
@@ -114,7 +117,7 @@ function Login({ onLogin }) {
 
     try {
       const response = await fetch(
-        'http://127.0.0.1:8000/api/login',
+        `${API_URL}/api/login`,
         {
           method: 'POST',
           headers: {
@@ -162,11 +165,10 @@ function Login({ onLogin }) {
       return
     }
 
-    if (!unitKerjaId) {
-      setError('Unit kerja wajib dipilih.')
+    if (userType === 'ASN' && !unitKerjaId) {
+      setError('Unit kerja wajib dipilih untuk ASN.')
       return
     }
-
     if (!userType) {
       setError('Jenis user wajib dipilih.')
       return
@@ -196,7 +198,7 @@ function Login({ onLogin }) {
 
     try {
       const response = await fetch(
-        'http://127.0.0.1:8000/api/register',
+        `${API_URL}/api/register`,
         {
           method: 'POST',
           headers: {
@@ -208,7 +210,7 @@ function Login({ onLogin }) {
             email: email.trim(),
             password: password,
             password_confirmation: confirmPassword,
-            unit_kerja_id: unitKerjaId,
+            unit_kerja_id: userType === 'ASN' ? unitKerjaId : null,
             user_type: userType,
           }),
         }
@@ -240,9 +242,10 @@ function Login({ onLogin }) {
       setPassword('')
       setConfirmPassword('')
       setUnitKerjaId('')
+      setUnitKerjaSearch('')
       setUserType('UMUM')
 
-      alert('Registrasi berhasil. Silakan login.')
+      toast.success('Registrasi berhasil. Silakan login.')
 
     } catch (error) {
       setError(error.message)
@@ -251,6 +254,43 @@ function Login({ onLogin }) {
     }
   }
 
+  // =====================================================
+  // SORT & FILTER UNIT KERJA (Abjad + Fuzzy Search)
+  // =====================================================
+  const filteredUnitKerjas = useMemo(() => {
+    const sorted = [...unitKerjas].sort((a, b) =>
+      a.nama_unit_kerja.localeCompare(b.nama_unit_kerja, 'id', {
+        sensitivity: 'base',
+      })
+    )
+
+    const search = unitKerjaSearch.trim().toLowerCase().replace(/\s+/g, '')
+    if (!search) return sorted
+
+    const exactMatches = []
+    const fuzzyMatches = []
+
+    for (const unit of sorted) {
+      const compact = unit.nama_unit_kerja.toLowerCase().replace(/\s+/g, '')
+
+      if (compact.includes(search)) {
+        exactMatches.push(unit)
+        continue
+      }
+
+      let i = 0
+      for (const char of compact) {
+        if (char === search[i]) i++
+        if (i === search.length) break
+      }
+      if (i === search.length) {
+        fuzzyMatches.push(unit)
+      }
+    }
+
+    return [...exactMatches, ...fuzzyMatches]
+  }, [unitKerjas, unitKerjaSearch])
+
   return (
     <div className="login-page">
       <div className="login-card">
@@ -258,11 +298,20 @@ function Login({ onLogin }) {
         {/* BAGIAN KIRI - BRANDING */}
         <div className="login-brand">
           <div className="login-brand-content">
-            <img
-              src="/logo-kominfo-landak.png"
-              alt="Dinas Komunikasi dan Informatika Kabupaten Landak"
-              className="login-logo"
-            />
+           <div className="login-logos">
+  <img
+    src="/Lambang_Kabupaten_Landak.png"
+    alt="Lambang Kabupaten Landak"
+    className="login-logo"
+  />
+  <div className="login-logo-circle">
+    <img
+      src="/logo-kominfo-landak.png"
+      alt="Logo Diskominfo Landak"
+      className="login-logo"
+    />
+  </div>
+</div>
 
             <h1 className="login-brand-title">PENINK</h1>
 
@@ -289,8 +338,8 @@ function Login({ onLogin }) {
             <h2>{isRegister ? 'Buat Akun' : 'Selamat Datang'}</h2>
             <p>
               {isRegister
-                ? 'Daftarkan akun baru untuk menggunakan PENINK'
-                : 'Silakan masuk ke akun PENINK Anda'}
+              ? 'Daftarkan akun baru. Pilih jenis user dulu, lalu lengkapi data.'
+              : 'Silakan masuk ke akun PENINK Anda'}
             </p>
           </div>
 
@@ -310,25 +359,7 @@ function Login({ onLogin }) {
               </div>
             )}
 
-            {isRegister && (
-              <div className="login-field">
-                <label htmlFor="unit-kerja">Unit Kerja</label>
-                <select
-                  id="unit-kerja"
-                  className="input"
-                  value={unitKerjaId}
-                  onChange={(e) => setUnitKerjaId(e.target.value)}
-                >
-                  <option value="">Pilih Unit Kerja</option>
-                  {unitKerjas.map((unit) => (
-                    <option key={unit.id} value={unit.id}>
-                      {unit.nama_unit_kerja}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
+            {/* JENIS USER */}
             {isRegister && (
               <div className="login-field">
                 <label htmlFor="user-type">Jenis User</label>
@@ -336,11 +367,79 @@ function Login({ onLogin }) {
                   id="user-type"
                   className="input"
                   value={userType}
-                  onChange={(e) => setUserType(e.target.value)}
+                  onChange={(e) => {
+                    const newType = e.target.value
+                    setUserType(newType)
+
+                    if (newType === 'UMUM') {
+                      setUnitKerjaId('')
+                      setUnitKerjaSearch('')
+                    }
+                  }}
                 >
                   <option value="UMUM">UMUM</option>
                   <option value="ASN">ASN</option>
                 </select>
+              </div>
+            )}
+
+            {/* UNIT KERJA — hanya untuk ASN */}
+            {isRegister && userType === 'ASN' && (
+              <div className="login-field">
+                <label htmlFor="unit-kerja">Unit Kerja</label>
+
+                <div className="unit-kerja-picker">
+                  <input
+                    id="unit-kerja"
+                    type="text"
+                    className="input"
+                    placeholder="🔍 Ketik untuk cari... (mis: kominfo)"
+                    value={unitKerjaSearch}
+                    onChange={(e) => {
+                      setUnitKerjaSearch(e.target.value)
+                      setShowUnitKerjaDropdown(true)
+                      if (unitKerjaId) setUnitKerjaId('')
+                    }}
+                    onFocus={() => setShowUnitKerjaDropdown(true)}
+                    onBlur={() =>
+                      setTimeout(
+                        () => setShowUnitKerjaDropdown(false),
+                        200
+                      )
+                    }
+                    autoComplete="off"
+                  />
+
+                  {showUnitKerjaDropdown && (
+                    <div className="unit-kerja-dropdown">
+                      {filteredUnitKerjas.length === 0 ? (
+                        <div className="unit-kerja-dropdown__empty">
+                          Tidak ada unit kerja yang cocok
+                        </div>
+                      ) : (
+                        filteredUnitKerjas.map((unit) => (
+                          <button
+                            key={unit.id}
+                            type="button"
+                            className={`unit-kerja-dropdown__item ${
+                              unitKerjaId === unit.id
+                                ? 'unit-kerja-dropdown__item--active'
+                                : ''
+                            }`}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                              setUnitKerjaId(unit.id)
+                              setUnitKerjaSearch(unit.nama_unit_kerja)
+                              setShowUnitKerjaDropdown(false)
+                            }}
+                          >
+                            {unit.nama_unit_kerja}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -424,6 +523,7 @@ function Login({ onLogin }) {
                 : 'Masuk'}
             </button>
 
+            {/* TOMBOL GOOGLE — AKTIF */}
             {!isRegister && (
               <>
                 <div className="login-divider">
@@ -435,7 +535,7 @@ function Login({ onLogin }) {
                   className="google-login-button"
                   onClick={() => {
                     window.location.href =
-                      'http://127.0.0.1:8000/api/auth/google'
+                    `${API_URL}/api/auth/google`
                   }}
                   disabled={loading}
                 >

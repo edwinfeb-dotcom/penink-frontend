@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Plus,
   FolderKanban,
@@ -7,7 +7,6 @@ import {
   Power,
   QrCode,
   ExternalLink,
-  ChevronDown,
   ChevronUp,
   Download,
   X,
@@ -15,11 +14,17 @@ import {
   ArrowUp,
   ArrowDown,
   Lightbulb,
+  Lock,
+  Copy,
 } from 'lucide-react'
 import { QRCodeCanvas } from 'qrcode.react'
+import UnitKerjaPicker from './UnitKerjaPicker'
+import { useToast } from './Toast'
 import './LinkHub.css'
 
 function LinkHub({
+  API_URL,
+  user,
   linkHubs,
   linkHubLoading,
   linkHubError,
@@ -56,7 +61,120 @@ function LinkHub({
   moveLinkItem,
   toggleLinkItemStatus,
 }) {
+  const toast = useToast()
   const [showInfo, setShowInfo] = useState(true)
+
+  // State untuk dropdown alias terkunci
+  const [manualAlias, setManualAlias] = useState('')
+  const [selectedLockedAliasId, setSelectedLockedAliasId] = useState('')
+  const [lockedAliases, setLockedAliases] = useState([])
+  const [loadingLocked, setLoadingLocked] = useState(false)
+  const [aliasError, setAliasError] = useState('')
+
+  // =====================================================
+  // STATE UNTUK FITUR KUNCI UNIT KERJA
+  // =====================================================
+  const [unitKerjas, setUnitKerjas] = useState([])
+  const [lockedUnitKerjaId, setLockedUnitKerjaId] = useState('')
+
+  // =====================================================
+  // CEK APAKAH USER BOLEH KUNCI KE UNIT KERJA
+  // Hanya admin, super_admin, admin_unit & user ASN yang boleh
+  // =====================================================
+  const canLockToUnit =
+    ['admin', 'super_admin', 'admin_unit'].includes(
+      String(user?.role || '').toLowerCase()
+    ) ||
+    String(user?.user_type || '').toUpperCase() === 'ASN'
+
+  // Fetch daftar unit kerja — hanya kalau user boleh kunci
+  useEffect(() => {
+    if (!canLockToUnit) return
+
+    const fetchUnitKerjas = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/unit-kerjas`)
+        const result = await response.json()
+        if (response.ok) {
+          setUnitKerjas(result.data || [])
+        }
+      } catch (error) {
+        console.error('UNIT KERJA ERROR:', error)
+      }
+    }
+    fetchUnitKerjas()
+  }, [API_URL, canLockToUnit])
+
+  // Fetch alias terkunci saat form buat dibuka
+  useEffect(() => {
+    if (!showLinkHubForm) return
+    if (!user?.unit_kerja_id) return
+
+    const fetchLockedAliases = async () => {
+      try {
+        setLoadingLocked(true)
+        const token = localStorage.getItem('token')
+        const res = await fetch(`${API_URL}/api/user/locked-aliases`, {
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        const data = await res.json()
+        setLockedAliases(data.data || [])
+      } catch (err) {
+        console.error('Gagal ambil alias terkunci:', err)
+        setLockedAliases([])
+      } finally {
+        setLoadingLocked(false)
+      }
+    }
+
+    fetchLockedAliases()
+  }, [showLinkHubForm, user, API_URL])
+
+  // Reset state lokal saat form ditutup
+  useEffect(() => {
+    if (!showLinkHubForm) {
+      setManualAlias('')
+      setSelectedLockedAliasId('')
+      setAliasError('')
+      setLockedUnitKerjaId('')
+    }
+  }, [showLinkHubForm])
+
+  const handleCreateSubmit = (e) => {
+    e.preventDefault()
+
+    const hasManual = manualAlias.trim() !== ''
+    const hasSelected = selectedLockedAliasId !== ''
+
+    if (!hasManual && !hasSelected) {
+      setAliasError('Alias wajib diisi.')
+      return
+    }
+
+    if (hasManual && hasSelected) {
+      setAliasError(
+        'Pilih salah satu: isi alias manual ATAU pilih dari daftar alias terkunci.'
+      )
+      return
+    }
+
+    setAliasError('')
+
+    const finalAlias = hasManual
+      ? manualAlias.trim()
+      : lockedAliases.find((a) => a.id === Number(selectedLockedAliasId))
+          ?.alias || ''
+
+    // Kirim kunci hanya kalau user boleh kunci
+    createLinkHub(
+      e,
+      finalAlias,
+      canLockToUnit ? (lockedUnitKerjaId || null) : null
+    )
+  }
 
   const handleToggleHub = (hub) => {
     if (selectedHub?.id === hub.id) {
@@ -72,16 +190,22 @@ function LinkHub({
     }
   }
 
+  // =====================================================
+  // SALIN LINK PUBLIK LINK HUB
+  // =====================================================
+  const handleCopyLink = (hub) => {
+    const publicUrl = `${window.location.origin}/${hub.short_code}`
+    navigator.clipboard.writeText(publicUrl)
+    toast.success('Link berhasil disalin!')
+  }
+
   return (
     <div className="lh">
-
       {/* HEADER HALAMAN */}
       <div className="lh__header">
         <div className="lh__header-text">
           <h1 className="lh__title">Link Hub</h1>
-          <p className="lh__subtitle">
-            Kumpulan link dalam satu halaman
-          </p>
+          <p className="lh__subtitle">Kumpulan link dalam satu halaman</p>
         </div>
 
         <button
@@ -98,40 +222,39 @@ function LinkHub({
       </div>
 
       {showInfo && (
-  <div className="lh__info">
-    {/* DEKORASI BACKGROUND */}
-    <div className="lh__info-deco" aria-hidden="true">
-      <Link2 size={80} className="lh__info-deco-icon lh__info-deco-icon--1" />
-      <FolderKanban size={120} className="lh__info-deco-icon lh__info-deco-icon--2" />
-      <ExternalLink size={70} className="lh__info-deco-icon lh__info-deco-icon--3" />
-      <QrCode size={90} className="lh__info-deco-icon lh__info-deco-icon--4" />
-    </div>
+        <div className="lh__info">
+          <div className="lh__info-deco" aria-hidden="true">
+            <Link2 size={80} className="lh__info-deco-icon lh__info-deco-icon--1" />
+            <FolderKanban size={120} className="lh__info-deco-icon lh__info-deco-icon--2" />
+            <ExternalLink size={70} className="lh__info-deco-icon lh__info-deco-icon--3" />
+            <QrCode size={90} className="lh__info-deco-icon lh__info-deco-icon--4" />
+          </div>
 
-    <div className="lh__info-icon">
-       <Lightbulb size={22} />
-    </div>
-    <div className="lh__info-content">
-      <strong>Apa itu Link Hub?</strong>
-      <p>
-        Link Hub memungkinkan Anda mengumpulkan beberapa tautan penting
-        dalam satu halaman. Bagikan satu link untuk mengakses berbagai
-        informasi — website, media sosial, layanan publik, dan lainnya.
-      </p>
-    </div>
-    <button
-      type="button"
-      className="lh__info-close"
-      onClick={() => setShowInfo(false)}
-      aria-label="Tutup info"
-    >
-      <X size={16} />
-    </button>
-  </div>
-)}
+          <div className="lh__info-icon">
+            <Lightbulb size={22} />
+          </div>
+          <div className="lh__info-content">
+            <strong>Apa itu Link Hub?</strong>
+            <p>
+              Link Hub memungkinkan Anda mengumpulkan beberapa tautan penting
+              dalam satu halaman. Bagikan satu link untuk mengakses berbagai
+              informasi — website, media sosial, layanan publik, dan lainnya.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="lh__info-close"
+            onClick={() => setShowInfo(false)}
+            aria-label="Tutup info"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
 
       {/* FORM BUAT LINK HUB */}
       {showLinkHubForm && (
-        <form className="lh__form-card" onSubmit={createLinkHub}>
+        <form className="lh__form-card" onSubmit={handleCreateSubmit}>
           <div className="lh__form-header">
             <div className="lh__form-icon">
               <FolderKanban size={20} />
@@ -179,23 +302,92 @@ function LinkHub({
               />
             </div>
 
+            {/* ALIAS CUSTOM */}
+<div className="lh__field">
+  <label>Alias Custom (opsional)</label>
+  <input
+    className="lh__input"
+    type="text"
+    placeholder="Contoh: promosi2026"
+    value={manualAlias}
+    onChange={(e) => {
+      setManualAlias(e.target.value)
+      setAliasError('')
+    }}
+  />
+  <small className="lh__hint">
+    Ketik alias sendiri, ATAU pilih dari daftar alias terkunci OPD di bawah.
+  </small>
+</div>
+            {/* ALIAS TERKUNCI — HANYA user dengan unit_kerja_id */}
+            {user?.unit_kerja_id && (
+              <div className="lh__field">
+                <label>Atau Pilih Alias Terkunci OPD Anda</label>
+
+                {loadingLocked ? (
+                  <div className="lh__hint">Memuat alias...</div>
+                ) : lockedAliases.length === 0 ? (
+                  <div className="lh__hint">
+                    Belum ada alias terkunci untuk OPD Anda.
+                  </div>
+                ) : (
+                  <select
+                    className="lh__input"
+                    value={selectedLockedAliasId}
+                    onChange={(e) => {
+                      setSelectedLockedAliasId(e.target.value)
+                      setAliasError('')
+                    }}
+                  >
+                    <option value="">-- Tidak pakai --</option>
+                    {lockedAliases.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        /{a.alias}
+                      </option>
+                    ))}
+                  </select>
+                )}
+
+                <small className="lh__hint">
+                  Alias ini khusus untuk OPD Anda (sudah dikunci oleh admin).
+                </small>
+              </div>
+            )}
+
+            {/* PICKER KUNCI UNIT KERJA — HANYA UNTUK ADMIN & ASN */}
+            {canLockToUnit && (
+              <div className="lh__field">
+                <label>
+                  <Lock size={13} style={{ display: 'inline', marginRight: 6 }} />
+                  Kunci Akses ke Unit Kerja (opsional)
+                </label>
+                <UnitKerjaPicker
+                  unitKerjas={unitKerjas}
+                  value={lockedUnitKerjaId}
+                  onChange={setLockedUnitKerjaId}
+                  placeholder="🔍 Ketik untuk cari unit kerja..."
+                />
+                <small className="lh__hint">
+                  Kalau dipilih, hanya user dari unit kerja tersebut yang bisa akses Link Hub ini.
+                </small>
+              </div>
+            )}
+
+            {/* ERROR ALIAS */}
+            {aliasError && <div className="lh__error">{aliasError}</div>}
+
+            {/* PREVIEW LINK */}
             <div className="lh__field">
-              <label>Alias Link Hub</label>
-              <input
-                className="lh__input"
-                type="text"
-                placeholder="Contoh: diskominfo"
-                value={linkHubForm.short_code}
-                onChange={(e) =>
-                  setLinkHubForm({
-                    ...linkHubForm,
-                    short_code: e.target.value,
-                  })
-                }
-                required
-              />
               <small className="lh__hint">
-                Link publik: /{linkHubForm.short_code || 'alias'}
+                Link publik:{' '}
+                <b>
+                  /
+                  {manualAlias.trim() ||
+                    lockedAliases.find(
+                      (a) => a.id === Number(selectedLockedAliasId)
+                    )?.alias ||
+                    'alias'}
+                </b>
               </small>
             </div>
 
@@ -205,7 +397,16 @@ function LinkHub({
                 className="lh__btn-secondary"
                 onClick={() => {
                   setShowLinkHubForm(false)
-                  setLinkHubForm({ title: '', description: '', short_code: '' })
+                  setLinkHubForm({
+                    title: '',
+                    description: '',
+                    short_code: '',
+                    type: 'UMUM',
+                  })
+                  setManualAlias('')
+                  setSelectedLockedAliasId('')
+                  setAliasError('')
+                  setLockedUnitKerjaId('')
                 }}
               >
                 Batal
@@ -280,6 +481,23 @@ function LinkHub({
             </div>
 
             <div className="lh__field">
+              <label>Jenis</label>
+              <select
+                className="lh__input"
+                value={editLinkHubForm.type || 'UMUM'}
+                onChange={(e) =>
+                  setEditLinkHubForm({
+                    ...editLinkHubForm,
+                    type: e.target.value,
+                  })
+                }
+              >
+                <option value="UMUM">UMUM</option>
+                <option value="ASN">ASN</option>
+              </select>
+            </div>
+
+            <div className="lh__field">
               <label>Alias</label>
               <input
                 className="lh__input"
@@ -295,6 +513,27 @@ function LinkHub({
               />
             </div>
 
+            {/* PICKER KUNCI UNIT KERJA DI EDIT */}
+            {canLockToUnit && (
+              <div className="lh__field">
+                <label>
+                  <Lock size={13} style={{ display: 'inline', marginRight: 6 }} />
+                  Kunci Akses ke Unit Kerja
+                </label>
+                <UnitKerjaPicker
+                  unitKerjas={unitKerjas}
+                  value={editLinkHubForm.locked_unit_kerja_id || ''}
+                  onChange={(val) =>
+                    setEditLinkHubForm({
+                      ...editLinkHubForm,
+                      locked_unit_kerja_id: val || null,
+                    })
+                  }
+                  placeholder="🔍 Ketik untuk cari unit kerja..."
+                />
+              </div>
+            )}
+
             <div className="lh__form-actions">
               <button
                 type="button"
@@ -305,6 +544,8 @@ function LinkHub({
                     title: '',
                     description: '',
                     short_code: '',
+                    type: 'UMUM',
+                    locked_unit_kerja_id: '',
                   })
                   setEditLinkHubError('')
                 }}
@@ -385,6 +626,17 @@ function LinkHub({
                         {window.location.origin}/{hub.short_code}
                         <ExternalLink size={12} />
                       </a>
+
+                      {/* BADGE 🔒 KALAU TERKUNCI */}
+                      {hub.locked_unit_kerja_id && (
+                        <div className="lh__item-locked">
+                          <Lock size={11} />
+                          <span>
+                            {hub.locked_unit_kerja?.nama_unit_kerja
+                              || 'Unit Kerja Tertentu'}
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="lh__item-meta">
@@ -396,6 +648,16 @@ function LinkHub({
                   </div>
 
                   <div className="lh__item-actions">
+                    {/* TOMBOL SALIN — BARU */}
+                    <button
+                      type="button"
+                      className="lh__btn-action"
+                      onClick={() => handleCopyLink(hub)}
+                      title="Salin link publik"
+                    >
+                      <Copy size={14} /> Salin
+                    </button>
+
                     <button
                       type="button"
                       className={`lh__btn-action ${
