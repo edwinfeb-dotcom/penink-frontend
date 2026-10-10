@@ -311,6 +311,10 @@ function App() {
     type: 'UMUM',
   })
 
+  // ✨ STATE BARU: Logo untuk Link Hub
+  const [logoFile, setLogoFile] = useState(null)
+  const [removeLogo, setRemoveLogo] = useState(false)
+
   const [editingLinkHub, setEditingLinkHub] = useState(null)
   const [editLinkHubForm, setEditLinkHubForm] = useState({
     title: '',
@@ -1048,6 +1052,7 @@ function App() {
       title: hub.title || '',
       description: hub.description || '',
       short_code: hub.short_code || '',
+      logo_url: hub.logo_url || null,
     })
 
     setEditLinkHubForm({
@@ -1058,6 +1063,9 @@ function App() {
       locked_unit_kerja_id: hub.locked_unit_kerja_id || '',
     })
 
+    // ✨ Reset state logo setiap kali mulai edit
+    setLogoFile(null)
+    setRemoveLogo(false)
     setEditLinkHubError('')
   }
 
@@ -1094,20 +1102,29 @@ function App() {
 
       const updateUrl = `${API_URL}/api/link-hubs/${editingLinkHub.id}`
 
+      // ✨ Pakai FormData karena ada upload file logo
+      const formData = new FormData()
+      formData.append('title', titleValue)
+      formData.append('description', descriptionValue || '')
+      formData.append('short_code', shortCodeValue)
+      formData.append('type', editLinkHubForm.type || 'UMUM')
+      formData.append('locked_unit_kerja_id', editLinkHubForm.locked_unit_kerja_id || '')
+      formData.append('_method', 'PUT')   // ← Laravel method spoofing
+
+      if (logoFile) {
+        formData.append('logo', logoFile)
+      }
+      if (removeLogo) {
+        formData.append('remove_logo', 'true')
+      }
+
       const response = await fetch(updateUrl, {
-        method: 'PUT',
+        method: 'POST',   // ← POST + _method=PUT untuk FormData
         headers: {
-          'Content-Type': 'application/json',
           Accept: 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          title: titleValue,
-          description: descriptionValue,
-          short_code: shortCodeValue,
-          type: editLinkHubForm.type || 'UMUM',
-          locked_unit_kerja_id: editLinkHubForm.locked_unit_kerja_id || null,
-        }),
+        body: formData,
       })
 
       const responseText = await response.text()
@@ -1161,6 +1178,10 @@ function App() {
         locked_unit_kerja_id: '',
       })
 
+      // ✨ Reset state logo setelah sukses
+      setLogoFile(null)
+      setRemoveLogo(false)
+
       setEditLinkHubError('')
 
       toast.success('Link Hub berhasil diperbarui.')
@@ -1174,7 +1195,7 @@ function App() {
   }
 
   // =====================================================
-  // CREATE LINK HUB
+  // CREATE LINK HUB — DENGAN LOGIKA KHUSUS OPD
   // =====================================================
 
   const createLinkHub = async (e, aliasOverride = null, lockedUnitKerjaId = null) => {
@@ -1203,25 +1224,62 @@ function App() {
       setLinkHubLoading(true)
       setLinkHubError('')
 
+      // ✨ Pakai FormData karena ada upload file logo
+      const formData = new FormData()
+      formData.append('title', linkHubForm.title)
+      formData.append('description', linkHubForm.description || '')
+      formData.append('short_code', finalAlias)
+      formData.append('type', linkHubForm.type)
+      formData.append('locked_unit_kerja_id', lockedUnitKerjaId || '')
+
+      if (logoFile) {
+        formData.append('logo', logoFile)
+      }
+
       const response = await fetch(`${API_URL}/api/link-hubs`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           Accept: 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          title: linkHubForm.title,
-          description: linkHubForm.description,
-          short_code: finalAlias,
-          type: linkHubForm.type,
-          locked_unit_kerja_id: lockedUnitKerjaId || null,
-        }),
+        body: formData,
       })
 
       const result = await response.json()
 
       if (!response.ok) {
+        // ✨ LOGIKA KHUSUS LINK HUB: Jika alias sudah dimiliki oleh OPD user
+        if (result.error_code === 'alias_already_owned_by_you') {
+          setNotifModal({
+            isOpen: true,
+            variant: 'info',
+            emoji: 'ℹ️',
+            title: 'Alias Sudah Dimiliki OPD Anda',
+            message: 'Anda sudah memiliki Link Hub dengan alias ini. Sistem akan mengarahkan Anda ke halaman edit.',
+          })
+          
+          setShowLinkHubForm(false)
+          
+          const existingHub = linkHubs.find(hub => hub.id === result.existing_id)
+          if (existingHub) {
+            startEditLinkHub(existingHub)
+          }
+          return
+        }
+
+        // ✨ LOGIKA KHUSUS LINK HUB: Jika alias terkunci untuk OPD lain
+        if (result.error_code === 'alias_locked_to_other') {
+          setNotifModal({
+            isOpen: true,
+            variant: 'error',
+            emoji: '🚫',
+            title: 'Alias Terkunci OPD Lain',
+            message: 'Alias ini sudah digunakan dan dikunci oleh OPD lain. Silakan pilih alias yang berbeda.',
+          })
+          return
+        }
+
+        // Error biasa (termasuk alias duplikat biasa)
         const validationMessage = result.errors
           ? Object.values(result.errors).flat().join(' ')
           : ''
@@ -1239,6 +1297,10 @@ function App() {
         short_code: '',
         type: 'UMUM',
       })
+
+      // ✨ Reset state logo setelah sukses
+      setLogoFile(null)
+      setRemoveLogo(false)
 
       setShowLinkHubForm(false)
       setLinkHubError('')
@@ -2107,7 +2169,9 @@ function App() {
           return
         }
 
-        throw new Error(result.message || 'Gagal membuat short URL')
+        // ✨ ERROR BIASA (Termasuk Alias Duplikat) — Pakai TOAST
+        const errorMessage = result.message || (result.errors ? Object.values(result.errors).flat().join(' ') : '')
+        throw new Error(errorMessage || 'Gagal membuat short URL')
       }
 
       setShortUrl(`${API_URL}/${result.data.short_code}`)
@@ -2197,6 +2261,7 @@ function App() {
           return
         }
 
+        // ✨ ERROR BIASA (Termasuk Alias Duplikat) — Pakai TOAST
         const validationMessage = result.errors
           ? Object.values(result.errors).flat().join(' ')
           : ''
@@ -2541,12 +2606,13 @@ function App() {
 
             <div className="pub__hero-content">
               <div className="pub__logo-wrap">
+                {/* ✨ Pakai logo custom kalau ada, kalau tidak pakai logo Kominfo default */}
                 <img
-                src="/logo-kominfo-landak.png"
-                alt="Logo Diskominfo Kabupaten Landak"
-                className="pub__logo"
+                  src={publicHub.logo_url || '/logo-kominfo-landak.png'}
+                  alt={`Logo ${publicHub.title}`}
+                  className="pub__logo"
                 />
-                </div>
+              </div>
 
               <span className="pub__badge">✨ PENINK • LINK HUB</span>
 
@@ -2896,6 +2962,11 @@ function App() {
                       deleteLinkItem={deleteLinkItem}
                       moveLinkItem={moveLinkItem}
                       toggleLinkItemStatus={toggleLinkItemStatus}
+                      /* ✨ Props baru untuk upload logo */
+                      logoFile={logoFile}
+                      setLogoFile={setLogoFile}
+                      removeLogo={removeLogo}
+                      setRemoveLogo={setRemoveLogo}
                     />
                   )}
 

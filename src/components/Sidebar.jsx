@@ -19,7 +19,7 @@ function Sidebar({
   user,
   isAdmin,
   isSuperAdmin,
-  isAdminUnit,      // ← BARU
+  isAdminUnit,
   isOpen,
   onClose,
   onLogout,
@@ -42,9 +42,6 @@ function Sidebar({
     { key: 'users', label: 'Kelola User', icon: Users },
   ]
 
-  // =====================================================
-  // CEK APA YANG BOLEH DIAKSES
-  // =====================================================
   const canManageUsers = isAdmin || isAdminUnit
   const canManageAliases = isSuperAdmin
   const showManagementSection = canManageUsers || canManageAliases
@@ -58,9 +55,12 @@ function Sidebar({
       />
 
       <aside className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}>
+        {/* =====================================================
+            BRAND
+           ===================================================== */}
         <div className="sidebar__brand">
           <div className="sidebar__brand-top">
-            {/* Bungkus kedua logo di sini */}
+            {/* 2 Logo lama */}
             <div className="sidebar__logos">
               <img
                 src="/Lambang_Kabupaten_Landak.png"
@@ -76,7 +76,7 @@ function Sidebar({
               </div>
             </div>
 
-            {/* Tombol close tetap di sini, jangan diubah */}
+            {/* Tombol close */}
             <button
               type="button"
               className="sidebar__close"
@@ -87,10 +87,16 @@ function Sidebar({
             </button>
           </div>
 
-          <h1 className="sidebar__title">PENINK</h1>
-          <p className="sidebar__subtitle">
-            Platform Short Link &amp; Link Hub
-          </p>
+                    {/* Logo PENINK baru — di dalam container dengan crop otomatis */}
+          <div className="sidebar__penink-wrapper">
+            <img
+              src="/logo-penink.png"
+              alt="PENINK — Platform Short Link & Link Hub"
+              className="sidebar__penink-logo"
+            />
+          </div>
+
+          {/* Teks Kabupaten Landak tetap */}
           <p className="sidebar__location">Kabupaten Landak</p>
         </div>
 
@@ -120,7 +126,6 @@ function Sidebar({
             <div className="sidebar__section">
               <span className="sidebar__section-title">PENGELOLAAN</span>
 
-              {/* Menu Kelola User — untuk admin, super_admin, & admin_unit */}
               {canManageUsers &&
                 menuAdmin.map((item) => {
                   const Icon = item.icon
@@ -139,7 +144,6 @@ function Sidebar({
                   )
                 })}
 
-              {/* Menu Kelola Alias — HANYA super_admin */}
               {canManageAliases && (
                 <button
                   type="button"

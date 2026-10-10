@@ -6,7 +6,7 @@ function Login({ onLogin }) {
   const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
   const toast = useToast()
 
-  const [email, setEmail] = useState('')
+  const [loginValue, setLoginValue] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -80,7 +80,7 @@ function Login({ onLogin }) {
     }
 
     handleGoogleLogin()
-  }, []) // <--- PERBAIKAN: Ubah dari [onLogin] menjadi []
+  }, [])
 
   useEffect(() => {
     if (!isRegister) return
@@ -109,6 +109,9 @@ function Login({ onLogin }) {
     fetchUnitKerjas()
   }, [isRegister])
 
+  // =====================================================
+  // LOGIN
+  // =====================================================
   const handleLogin = async (e) => {
     e.preventDefault()
 
@@ -125,13 +128,20 @@ function Login({ onLogin }) {
             'Accept': 'application/json',
           },
           body: JSON.stringify({
-            email: email,
+            login: loginValue,
             password: password,
           }),
         }
       )
 
       const result = await response.json()
+
+      // ✨ Handle rate limit 429
+      if (response.status === 429) {
+        throw new Error(
+          result.message || 'Terlalu banyak percobaan login. Coba lagi dalam 1 menit.'
+        )
+      }
 
       if (!response.ok) {
         throw new Error(
@@ -150,6 +160,9 @@ function Login({ onLogin }) {
     }
   }
 
+  // =====================================================
+  // REGISTER
+  // =====================================================
   const handleRegister = async (e) => {
     e.preventDefault()
 
@@ -160,7 +173,8 @@ function Login({ onLogin }) {
       return
     }
 
-    if (!email.trim()) {
+    // ✨ Pakai loginValue untuk email register
+    if (!loginValue.trim()) {
       setError('Email wajib diisi.')
       return
     }
@@ -207,7 +221,7 @@ function Login({ onLogin }) {
           },
           body: JSON.stringify({
             name: name.trim(),
-            email: email.trim(),
+            email: loginValue.trim(),   // ✨ Pakai loginValue
             password: password,
             password_confirmation: confirmPassword,
             unit_kerja_id: userType === 'ASN' ? unitKerjaId : null,
@@ -218,6 +232,14 @@ function Login({ onLogin }) {
 
       const result = await response.json()
 
+      // ✨ Handle rate limit 429
+      if (response.status === 429) {
+        throw new Error(
+          result.message || 'Terlalu banyak percobaan registrasi. Coba lagi nanti.'
+        )
+      }
+
+      // ✨ Handle error validation
       if (!response.ok) {
         if (result.errors) {
           if (result.errors.email) {
@@ -235,10 +257,11 @@ function Login({ onLogin }) {
         )
       }
 
+      // ✨ Sukses register
       setIsRegister(false)
 
       setName('')
-      setEmail('')
+      setLoginValue('')
       setPassword('')
       setConfirmPassword('')
       setUnitKerjaId('')
@@ -298,31 +321,34 @@ function Login({ onLogin }) {
         {/* BAGIAN KIRI - BRANDING */}
         <div className="login-brand">
           <div className="login-brand-content">
-           <div className="login-logos">
-  <img
-    src="/Lambang_Kabupaten_Landak.png"
-    alt="Lambang Kabupaten Landak"
-    className="login-logo"
-  />
-  <div className="login-logo-circle">
-    <img
-      src="/logo-kominfo-landak.png"
-      alt="Logo Diskominfo Landak"
-      className="login-logo"
-    />
-  </div>
-</div>
 
-            <h1 className="login-brand-title">PENINK</h1>
+            <div className="login-logos">
+              <img
+                src="/Lambang_Kabupaten_Landak.png"
+                alt="Lambang Kabupaten Landak"
+                className="login-logo"
+              />
+              <div className="login-logo-circle">
+                <img
+                  src="/logo-kominfo-landak.png"
+                  alt="Logo Diskominfo Landak"
+                  className="login-logo"
+                />
+              </div>
+            </div>
 
-            <p className="login-brand-subtitle">
-              Platform Short Link &amp; Link Hub
-            </p>
+            {/* Logo PENINK baru */}
+            <div className="login-penink-wrapper">
+              <img
+                src="/logo-penink.png"
+                alt="PENINK — Platform Short Link & Link Hub"
+                className="login-penink-logo"
+              />
+            </div>
 
             <div className="login-brand-divider" />
 
             <p className="login-brand-location">
-              Dinas Komunikasi dan Informatika<br />
               Kabupaten Landak
             </p>
           </div>
@@ -359,7 +385,6 @@ function Login({ onLogin }) {
               </div>
             )}
 
-            {/* JENIS USER */}
             {isRegister && (
               <div className="login-field">
                 <label htmlFor="user-type">Jenis User</label>
@@ -383,7 +408,6 @@ function Login({ onLogin }) {
               </div>
             )}
 
-            {/* UNIT KERJA — hanya untuk ASN */}
             {isRegister && userType === 'ASN' && (
               <div className="login-field">
                 <label htmlFor="unit-kerja">Unit Kerja</label>
@@ -443,16 +467,23 @@ function Login({ onLogin }) {
               </div>
             )}
 
+            {/* ✨ Label dinamis: Email/Username untuk login, Email untuk register */}
             <div className="login-field">
-              <label htmlFor="email">Email</label>
+              <label htmlFor="login">
+                {isRegister ? 'Email' : 'Email / Username'}
+              </label>
               <input
-                id="email"
+                id="login"
                 className="input"
-                type="email"
-                placeholder="nama@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
+                type={isRegister ? 'email' : 'text'}
+                placeholder={
+                  isRegister
+                    ? 'nama@email.com'
+                    : 'nama@email.com atau username'
+                }
+                value={loginValue}
+                onChange={(e) => setLoginValue(e.target.value)}
+                autoComplete={isRegister ? 'email' : 'username'}
               />
             </div>
 
@@ -523,7 +554,6 @@ function Login({ onLogin }) {
                 : 'Masuk'}
             </button>
 
-            {/* TOMBOL GOOGLE — AKTIF */}
             {!isRegister && (
               <>
                 <div className="login-divider">

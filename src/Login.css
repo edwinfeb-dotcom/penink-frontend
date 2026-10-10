@@ -36,17 +36,13 @@
   width: 42%;
   padding: 50px 40px;
   box-sizing: border-box;
-  background: linear-gradient(160deg, #0b1f3a 0%, #112b54 55%, #1d4ed8 160%);
+  background: var(--color-dark);
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
 }
-
-/* =====================================================
-   MOTIF BATIK + TEKNOLOGI
-   ===================================================== */
 .login-brand::before {
   content: '';
   position: absolute;
@@ -55,9 +51,7 @@
   pointer-events: none;
 
   background-image:
-    /* Sirkuit teknologi */
     url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'><g stroke='%23FFFFFF' stroke-width='0.7' fill='none'><path d='M20 40 H80 V90 H140 V140 H200 V190'/><path d='M20 110 H50 V160 H110 V210 H170'/><path d='M50 20 V60 H100 V110 H160 V160'/><path d='M180 20 V50 H220 V100 H240'/><path d='M80 220 V180 H130 V140 H190 V100'/></g><g fill='%23FFFFFF'><circle cx='80' cy='90' r='2'/><circle cx='140' cy='140' r='2'/><circle cx='200' cy='190' r='2'/><circle cx='50' cy='160' r='2'/><circle cx='110' cy='210' r='2'/><circle cx='100' cy='110' r='2'/><circle cx='160' cy='160' r='2'/><circle cx='180' cy='100' r='2'/><circle cx='130' cy='140' r='2'/></g></svg>"),
-    /* Batik kawung */
     url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><g fill='none' stroke='%23FFFFFF' stroke-width='0.6'><ellipse cx='50' cy='25' rx='22' ry='25'/><ellipse cx='50' cy='75' rx='22' ry='25'/><ellipse cx='25' cy='50' rx='25' ry='22'/><ellipse cx='75' cy='50' rx='25' ry='22'/><circle cx='50' cy='50' r='3' fill='%23FFFFFF'/></g></svg>");
 
   background-size: 400px 400px, 120px 120px;
@@ -67,20 +61,6 @@
   opacity: 0.05;
 }
 
-/* Pastikan konten branding di atas motif */
-.login-brand-content {
-  position: relative;
-  z-index: 2;
-}
-
-/* Pastikan dekorasi lama (circle) tetap di atas motif */
-.login-brand-decoration {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  pointer-events: none;
-}
-
 .login-brand-content {
   position: relative;
   z-index: 2;
@@ -88,8 +68,15 @@
   width: 100%;
 }
 
+.login-brand-decoration {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
 /* =====================================================
-   LOGOS — LAMBANG LANDAK + KOMINFO (dengan circle putih)
+   LOGOS — LAMBANG LANDAK + KOMINFO
    ===================================================== */
 
 .login-logos {
@@ -97,10 +84,9 @@
   align-items: center;
   justify-content: center;
   gap: 20px;
-  margin: 0 auto 26px;
+  margin: 0 auto 20px;
 }
 
-/* Logo umum — dipakai logo Kabupaten (kiri) */
 .login-logo {
   height: 90px;
   width: auto;
@@ -110,12 +96,10 @@
   filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.25));
 }
 
-/* Khusus logo Kabupaten — langsung child, sedikit lebih besar */
 .login-logos > .login-logo {
   height: 100px;
 }
 
-/* Wrapper lingkaran putih untuk logo Kominfo */
 .login-logo-circle {
   width: 86px;
   height: 86px;
@@ -133,7 +117,6 @@
   filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.15));
 }
 
-/* Logo Kominfo di dalam lingkaran */
 .login-logo-circle .login-logo {
   width: 100%;
   height: 100%;
@@ -142,38 +125,45 @@
   filter: none;
 }
 
-.login-brand-title {
-  margin: 0;
-  font-size: 38px;
-  font-weight: 800;
-  letter-spacing: 4px;
-  line-height: 1.1;
-  color: #ffffff;
+/* =====================================================
+   LOGO PENINK — pengganti tulisan PENINK + subtitle
+   ===================================================== */
+.login-penink-wrapper {
+  width: 100%;
+  max-width: 320px;
+  height: 95px;
+  margin: -5px auto 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.login-brand-subtitle {
-  margin: 12px 0 0;
-  font-size: 14px;
-  font-weight: 500;
-  color: #cbd5e1;
-  letter-spacing: 0.3px;
-  line-height: 1.5;
+.login-penink-logo {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  transform: scale(1.3);
 }
 
+/* =====================================================
+   DIVIDER & LOCATION
+   ===================================================== */
 .login-brand-divider {
   width: 60px;
   height: 3px;
   background: linear-gradient(90deg, transparent, #60a5fa, transparent);
   border-radius: 999px;
-  margin: 22px auto;
+  margin: 18px auto;
 }
 
 .login-brand-location {
   margin: 0;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 600;
   line-height: 1.7;
-  color: #94a3b8;
+  color: #cbd5e1;  
   letter-spacing: 0.2px;
 }
 
@@ -551,8 +541,9 @@
     padding: 40px 25px;
   }
 
-  .login-brand-title {
-    font-size: 30px;
+  .login-penink-wrapper {
+    max-width: 240px;
+    height: 85px;
   }
 
   .login-form-area {
@@ -583,37 +574,35 @@
 
   .login-logos {
     gap: 16px;
-    margin-bottom: 18px;
+    margin-bottom: 16px;
   }
 
-  /* Logo umum di mobile */
   .login-logo {
     height: 70px;
     max-width: 100px;
   }
 
-  /* Logo Kabupaten di mobile */
   .login-logos > .login-logo {
     height: 80px;
   }
 
-  /* Circle Kominfo di mobile */
   .login-logo-circle {
     width: 72px;
     height: 72px;
   }
 
-  .login-brand-title {
-    font-size: 30px;
-    letter-spacing: 3px;
+  .login-penink-wrapper {
+    max-width: 220px;
+    height: 75px;
+    margin-top: -3px;
   }
 
-  .login-brand-subtitle {
-    font-size: 13px;
+  .login-penink-logo {
+    transform: scale(1.4);
   }
 
   .login-brand-divider {
-    margin: 16px auto;
+    margin: 14px auto;
   }
 
   .login-form-area {
@@ -640,7 +629,7 @@
 
   .login-logos {
     gap: 14px;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
   }
 
   .login-logo {
@@ -657,8 +646,13 @@
     height: 62px;
   }
 
-  .login-brand-title {
-    font-size: 26px;
+  .login-penink-wrapper {
+    max-width: 190px;
+    height: 65px;
+  }
+
+  .login-penink-logo {
+    transform: scale(1.35);
   }
 
   .login-form-area {

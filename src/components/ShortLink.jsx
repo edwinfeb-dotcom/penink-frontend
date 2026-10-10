@@ -15,6 +15,7 @@ import {
 import { QRCodeCanvas } from 'qrcode.react'
 import './ShortLink.css'
 import { useToast } from './Toast'
+import NotificationModal from './NotificationModal' // <-- Tambahkan Import Ini
 
 function ShortLink({
   user,
@@ -45,6 +46,15 @@ function ShortLink({
   const [searchTerm, setSearchTerm] = useState('')
   const [showQrId, setShowQrId] = useState(null)
 
+  // STATE BARU: Untuk mengontrol Modal Konfirmasi
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    type: 'info',
+    title: '',
+    message: '',
+    onConfirm: null
+  })
+
   const filteredLinks = shortLinks.filter((link) => {
     const q = searchTerm.toLowerCase().trim()
     if (!q) return true
@@ -59,6 +69,51 @@ function ShortLink({
     e.preventDefault()
     shortenUrl()
     setShowForm(false)
+    
+    // CATATAN UNTUK ERROR "ALIAS SUDAH DIGUNAKAN":
+    // Karena fungsi shortenUrl() dieksekusi di App.jsx, kamu perlu memantau
+    // state error dari sana. Jika di App.jsx ada state `shortenError`,
+    // kamu bisa tambahkan useEffect di sini untuk memunculkan modal:
+    //
+    // useEffect(() => {
+    //   if (shortenError === "Alias tersebut sudah digunakan") {
+    //     setModalConfig({
+    //       isOpen: true, type: 'warning',
+    //       title: 'Alias Sudah Digunakan',
+    //       message: 'Silakan pilih alias lain yang belum terdaftar.'
+    //     })
+    //   }
+    // }, [shortenError])
+  }
+
+  // FUNGSI BARU: Konfirmasi Hapus Link
+  const handleDeleteClick = (id) => {
+    setModalConfig({
+      isOpen: true,
+      type: 'warning', // Emoji ⚠️
+      title: 'Hapus Short Link',
+      message: 'Apakah kamu yakin ingin menghapus short link ini? Tindakan ini tidak dapat dibatalkan.',
+      onConfirm: () => {
+        handleDeleteShortLink(id)
+        setModalConfig(prev => ({ ...prev, isOpen: false }))
+      }
+    })
+  }
+
+  // FUNGSI BARU: Konfirmasi Aktif/Nonaktif Link
+  const handleToggleClick = (id, currentStatus) => {
+    setModalConfig({
+      isOpen: true,
+      type: 'info', // Emoji ℹ️
+      title: currentStatus ? 'Nonaktifkan Short Link' : 'Aktifkan Short Link',
+      message: currentStatus 
+        ? 'Short link tidak akan bisa diakses sementara waktu.' 
+        : 'Short link akan bisa diakses kembali oleh pengguna.',
+      onConfirm: () => {
+        handleToggleShortLink(id)
+        setModalConfig(prev => ({ ...prev, isOpen: false }))
+      }
+    })
   }
 
   return (
@@ -400,20 +455,22 @@ function ShortLink({
                     <QrCode size={15} />
                   </button>
 
+                  {/* UBAH: Gunakan handleToggleClick untuk konfirmasi */}
                   <button
                     type="button"
                     className="sl__icon-btn"
                     title={link.status ? 'Nonaktifkan' : 'Aktifkan'}
-                    onClick={() => handleToggleShortLink(link.id)}
+                    onClick={() => handleToggleClick(link.id, link.status)}
                   >
                     <Power size={15} />
                   </button>
 
+                  {/* UBAH: Gunakan handleDeleteClick untuk konfirmasi */}
                   <button
                     type="button"
                     className="sl__icon-btn sl__icon-btn--danger"
                     title="Hapus"
-                    onClick={() => handleDeleteShortLink(link.id)}
+                    onClick={() => handleDeleteClick(link.id)}
                   >
                     <Trash2 size={15} />
                   </button>
@@ -447,6 +504,30 @@ function ShortLink({
           </div>
         )}
       </div>
+
+      {/* MODAL KONFIRMASI (DITAMBAHKAN DI PALING BAWAH) */}
+      <NotificationModal
+        isOpen={modalConfig.isOpen}
+        type={modalConfig.type}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        onClose={() => setModalConfig(prev => ({ ...prev, isOpen: false }))}
+      >
+        {/* Tombol Kustom untuk Konfirmasi */}
+        <button 
+          className="btn-secondary-modal" 
+          onClick={() => setModalConfig(prev => ({ ...prev, isOpen: false }))}
+        >
+          Batal
+        </button>
+        <button 
+          className="btn-primary-modal" 
+          onClick={modalConfig.onConfirm}
+        >
+          Ya, Lanjutkan
+        </button>
+      </NotificationModal>
+
     </div>
   )
 }
