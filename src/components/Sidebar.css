@@ -29,7 +29,7 @@
    MOTIF BATIK + TEKNOLOGI
    ===================================================== */
 .sidebar::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   z-index: 0;
@@ -39,8 +39,12 @@
     url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'><g stroke='%23FFFFFF' stroke-width='0.7' fill='none'><path d='M20 40 H80 V90 H140 V140 H200 V190'/><path d='M20 110 H50 V160 H110 V210 H170'/><path d='M50 20 V60 H100 V110 H160 V160'/><path d='M180 20 V50 H220 V100 H240'/><path d='M80 220 V180 H130 V140 H190 V100'/></g><g fill='%23FFFFFF'><circle cx='80' cy='90' r='2'/><circle cx='140' cy='140' r='2'/><circle cx='200' cy='190' r='2'/><circle cx='50' cy='160' r='2'/><circle cx='110' cy='210' r='2'/><circle cx='100' cy='110' r='2'/><circle cx='160' cy='160' r='2'/><circle cx='180' cy='100' r='2'/><circle cx='130' cy='140' r='2'/></g></svg>"),
     url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><g fill='none' stroke='%23FFFFFF' stroke-width='0.6'><ellipse cx='50' cy='25' rx='22' ry='25'/><ellipse cx='50' cy='75' rx='22' ry='25'/><ellipse cx='25' cy='50' rx='25' ry='22'/><ellipse cx='75' cy='50' rx='25' ry='22'/><circle cx='50' cy='50' r='3' fill='%23FFFFFF'/></g></svg>");
 
-  background-size: 400px 400px, 120px 120px;
-  background-position: 0 0, 30px 30px;
+  background-size:
+    400px 400px,
+    120px 120px;
+  background-position:
+    0 0,
+    30px 30px;
   background-repeat: repeat, repeat;
 
   opacity: 0.05;
@@ -128,9 +132,9 @@
 .sidebar__penink-wrapper {
   width: 100%;
   max-width: 200px;
-  height: 75px;               /* tinggi tetap — atur sesuai kebutuhan */
-  margin: 8px auto 0;
-  overflow: hidden;           /* potong ruang kosong PNG */
+  height: 75px; /* tinggi tetap — atur sesuai kebutuhan */
+  margin: 8px auto -5px;
+  overflow: hidden; /* potong ruang kosong PNG */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -143,7 +147,7 @@
   display: block;
   object-fit: contain;
   /* transform untuk geser logo di dalam wrapper */
-  transform: scale(1.4);      /* perbesar biar ruang kosong "hilang" */
+  transform: scale(1.3); /* perbesar biar ruang kosong "hilang" */
 }
 
 /* =====================================================
@@ -173,12 +177,13 @@
    TEKS KABUPATEN LANDAK — Rapat dengan logo PENINK
    ===================================================== */
 .sidebar__location {
-  margin: 0;
-  font-size: 12px;         /* dari var(--font-size-xs) ≈ 11px → 13px */
-  font-weight: 600;        /* tambah biar lebih tebal */
-  color: #cbd5e1;          /* dari var(--color-gray) → lebih terang */
-  line-height: 1.5;
-  letter-spacing: 0.4px;
+  margin: 2px 0 0;
+  font-size: 12px; /* dari 13px → 12px */
+  font-weight: 500; /* dari 600 → 500 (lebih tipis) */
+  color: #94a3b8; /* dari #cbd5e1 → lebih redup */
+  line-height: 1.4;
+  letter-spacing: 0.3px;
+  text-align: center;
 }
 
 /* =====================================================
@@ -216,12 +221,14 @@
   border: none;
   border-radius: var(--radius-md);
   background: transparent;
-  color: #CBD5E1;
+  color: #cbd5e1;
   font-size: var(--font-size-base);
   font-weight: 500;
   text-align: left;
   cursor: pointer;
-  transition: background 0.18s ease, color 0.18s ease;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
 }
 
 .sidebar__item:hover {
@@ -257,7 +264,7 @@
   width: 100%;
   justify-content: flex-start;
   background: transparent;
-  color: #CBD5E1;
+  color: #cbd5e1;
 }
 
 .sidebar__footer .sidebar__item:hover {
@@ -283,10 +290,10 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.04);
-  color: #CBD5E1;
+  color: #cbd5e1;
   font-size: var(--font-size-sm);
   font-weight: 600;
   cursor: pointer;
@@ -296,7 +303,7 @@
 .sidebar__logout:hover {
   background: rgba(239, 68, 68, 0.15);
   border-color: rgba(239, 68, 68, 0.35);
-  color: #FCA5A5;
+  color: #fca5a5;
 }
 
 .sidebar-backdrop {

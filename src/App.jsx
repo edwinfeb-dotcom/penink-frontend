@@ -1,337 +1,331 @@
-import { useState, useEffect, lazy, Suspense } from 'react'
+import { useState, useEffect, lazy, Suspense } from "react";
 
-import Login from './Login'
-import Sidebar from './components/Sidebar'
-import Header from './components/Header'
+import Login from "./Login";
+import Sidebar from "./components/Sidebar";
+import Header from "./components/Header";
 
 // Lazy load — komponen ini baru di-download saat dibuka
-const Dashboard = lazy(() => import('./components/Dashboard'))
-const ShortLink = lazy(() => import('./components/ShortLink'))
-const LinkHub = lazy(() => import('./components/LinkHub'))
-const Statistik = lazy(() => import('./components/Statistik'))
-const Users = lazy(() => import('./components/Users'))
-const Feedback = lazy(() => import('./components/Feedback'))
-const Profile = lazy(() => import('./components/Profile'))
-const LockedAlias = lazy(() => import('./components/LockedAlias'))
-const Pengaturan = lazy(() => import('./components/Pengaturan'))
+const Dashboard = lazy(() => import("./components/Dashboard"));
+const ShortLink = lazy(() => import("./components/ShortLink"));
+const LinkHub = lazy(() => import("./components/LinkHub"));
+const Statistik = lazy(() => import("./components/Statistik"));
+const Users = lazy(() => import("./components/Users"));
+const Feedback = lazy(() => import("./components/Feedback"));
+const Profile = lazy(() => import("./components/Profile"));
+const LockedAlias = lazy(() => import("./components/LockedAlias"));
+const Pengaturan = lazy(() => import("./components/Pengaturan"));
 
-import './components/PublicLinkHub.css'
-import { useToast } from './components/Toast'
-import { useConfirm } from './components/ConfirmModal'
-import NotificationModal from './components/NotificationModal'
-import './App.css'
+import "./components/PublicLinkHub.css";
+import { useToast } from "./components/Toast";
+import { useConfirm } from "./components/ConfirmModal";
+import NotificationModal from "./components/NotificationModal";
+import "./App.css";
 
 function App() {
+  const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+  const toast = useToast();
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
-  const toast = useToast()
-  
-  const confirm = useConfirm()
+  const confirm = useConfirm();
 
   // =====================================================
   // PUBLIC LINK HUB
   // =====================================================
 
-  const [publicHub, setPublicHub] = useState(null)
-  const [publicHubLoading, setPublicHubLoading] = useState(true)
-  const [publicHubError, setPublicHubError] = useState('')
+  const [publicHub, setPublicHub] = useState(null);
+  const [publicHubLoading, setPublicHubLoading] = useState(true);
+  const [publicHubError, setPublicHubError] = useState("");
 
-  const [publicHubErrorCode, setPublicHubErrorCode] = useState(null) 
-  const [publicHubLockedUnit, setPublicHubLockedUnit] = useState('')
-  const [lockedShortLink, setLockedShortLink] = useState(null)
-  const [lockedShortLinkUnit, setLockedShortLinkUnit] = useState('')
+  const [publicHubErrorCode, setPublicHubErrorCode] = useState(null);
+  const [publicHubLockedUnit, setPublicHubLockedUnit] = useState("");
+  const [lockedShortLink, setLockedShortLink] = useState(null);
+  const [lockedShortLinkUnit, setLockedShortLinkUnit] = useState("");
 
   // Daftar halaman yang di-handle React (bukan public link hub)
   const RESERVED_PATHS = [
-    'dashboard',
-    'shortlink',
-    'linkhub',
-    'statistik',
-    'saran',
-    'feedback-list',
-    'users',
-    'locked-aliases',
-    'pengaturan',
-    'login',
-    'register',
-  ]
+    "dashboard",
+    "shortlink",
+    "linkhub",
+    "statistik",
+    "saran",
+    "feedback-list",
+    "users",
+    "locked-aliases",
+    "pengaturan",
+    "login",
+    "register",
+  ];
 
-  const pathParts = window.location.pathname
-    .split('/')
-    .filter(Boolean)
+  const pathParts = window.location.pathname.split("/").filter(Boolean);
 
   const isPublicHub =
-    pathParts.length === 1 &&
-    !RESERVED_PATHS.includes(pathParts[0])
+    pathParts.length === 1 && !RESERVED_PATHS.includes(pathParts[0]);
 
   // =====================================================
   // STATE
   // =====================================================
 
-  const [activePage, setActivePage] = useState('dashboard')
+  const [activePage, setActivePage] = useState("dashboard");
 
   // =====================================================
   // STATE — NOTIFICATION MODAL
   // =====================================================
   const [notifModal, setNotifModal] = useState({
     isOpen: false,
-    variant: 'info',
-    emoji: 'ℹ️',
-    title: '',
-    message: '',
-  })
+    variant: "info",
+    emoji: "ℹ️",
+    title: "",
+    message: "",
+  });
 
   // =====================================================
   // URL SYNC — baca URL saat pertama load
   // =====================================================
-    useEffect(() => {
-    const path = window.location.pathname
-      .replace(/^\/+|\/+$/g, '')
+  useEffect(() => {
+    const path = window.location.pathname.replace(/^\/+|\/+$/g, "");
 
     if (path && RESERVED_PATHS.includes(path)) {
-      setActivePage(path)
+      setActivePage(path);
     } else if (!path) {
-      const search = window.location.search
-      const hasGoogleToken = search.includes('google_token')
-      const hasLockedLink = search.includes('locked_link')
+      const search = window.location.search;
+      const hasGoogleToken = search.includes("google_token");
+      const hasLockedLink = search.includes("locked_link");
 
       if (!hasGoogleToken && !hasLockedLink) {
-        window.history.replaceState({}, '', '/dashboard')
+        window.history.replaceState({}, "", "/dashboard");
       }
     }
-  }, [])
+  }, []);
 
   // =====================================================
   // URL SYNC — listen tombol back/forward browser
   // =====================================================
   useEffect(() => {
     const handlePopState = () => {
-      const path = window.location.pathname
-        .replace(/^\/+|\/+$/g, '')
+      const path = window.location.pathname.replace(/^\/+|\/+$/g, "");
 
       if (path && RESERVED_PATHS.includes(path)) {
-        setActivePage(path)
+        setActivePage(path);
       } else {
-        setActivePage('dashboard')
+        setActivePage("dashboard");
       }
-    }
+    };
 
-    window.addEventListener('popstate', handlePopState)
-    return () => window.removeEventListener('popstate', handlePopState)
-  }, [])
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   // =====================================================
   // DETEKSI SHORT LINK TERKUNCI (dari query ?locked_link=)
   // =====================================================
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const lockedLink = params.get('locked_link')
-    const lockedUnit = params.get('unit')
+    const params = new URLSearchParams(window.location.search);
+    const lockedLink = params.get("locked_link");
+    const lockedUnit = params.get("unit");
 
-    if (!lockedLink) return
+    if (!lockedLink) return;
 
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem("token");
 
     if (!token) {
-      setLockedShortLink(lockedLink)
-      setLockedShortLinkUnit(lockedUnit || '')
-      return
+      setLockedShortLink(lockedLink);
+      setLockedShortLinkUnit(lockedUnit || "");
+      return;
     }
 
     fetch(`${API_URL}/api/short-links/${lockedLink}/resolve`, {
       headers: {
-        Accept: 'application/json',
+        Accept: "application/json",
         Authorization: `Bearer ${token}`,
       },
     })
       .then(async (response) => {
-        const result = await response.json()
+        const result = await response.json();
 
         if (response.ok && result.original_url) {
-          window.location.replace(result.original_url)
-          return
+          window.location.replace(result.original_url);
+          return;
         }
 
-        setLockedShortLink(lockedLink)
-        setLockedShortLinkUnit(lockedUnit || '')
+        setLockedShortLink(lockedLink);
+        setLockedShortLinkUnit(lockedUnit || "");
       })
       .catch(() => {
-        setLockedShortLink(lockedLink)
-        setLockedShortLinkUnit(lockedUnit || '')
-      })
-  }, [API_URL])
+        setLockedShortLink(lockedLink);
+        setLockedShortLinkUnit(lockedUnit || "");
+      });
+  }, [API_URL]);
 
   // =====================================================
   // Navigation helper
   // =====================================================
   const navigateTo = (page, resetProfile = true) => {
-    setActivePage(page)
+    setActivePage(page);
     if (resetProfile) {
-      setShowProfile(false)
+      setShowProfile(false);
     }
-    window.history.pushState({}, '', `/${page}`)
-  }
+    window.history.pushState({}, "", `/${page}`);
+  };
 
-  const [showProfile, setShowProfile] = useState(false)
-  const [editingProfile, setEditingProfile] = useState(false)
+  const [showProfile, setShowProfile] = useState(false);
+  const [editingProfile, setEditingProfile] = useState(false);
 
-  const [editName, setEditName] = useState('')
-  const [editEmail, setEditEmail] = useState('')
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
 
-  const [currentPassword, setCurrentPassword] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmNewPassword, setConfirmNewPassword] = useState('')
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
 
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
-  const [showNewPassword, setShowNewPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const [feedbackType, setFeedbackType] = useState('saran')
-  const [feedbackTitle, setFeedbackTitle] = useState('')
-  const [feedbackMessage, setFeedbackMessage] = useState('')
+  const [feedbackType, setFeedbackType] = useState("saran");
+  const [feedbackTitle, setFeedbackTitle] = useState("");
+  const [feedbackMessage, setFeedbackMessage] = useState("");
 
-  const [feedbacks, setFeedbacks] = useState([])
-  const [selectedFeedback, setSelectedFeedback] = useState(null)
-  const [feedbackLoading, setFeedbackLoading] = useState(false)
-  const [feedbackSuccess, setFeedbackSuccess] = useState('')
-  const [feedbackError, setFeedbackError] = useState('')
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [selectedFeedback, setSelectedFeedback] = useState(null);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [feedbackSuccess, setFeedbackSuccess] = useState("");
+  const [feedbackError, setFeedbackError] = useState("");
 
-  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false)
-  const [showUserPassword, setShowUserPassword] = useState(false)
-  const [showEditUserPassword, setShowEditUserPassword] = useState(false)
+  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+  const [showUserPassword, setShowUserPassword] = useState(false);
+  const [showEditUserPassword, setShowEditUserPassword] = useState(false);
 
   const getFeedbackBadge = (type) => {
     const badges = {
-      saran: { label: 'Saran', background: '#dcfce7', color: '#15803d' },
-      masukan: { label: 'Masukan', background: '#ffedd5', color: '#c2410c' },
-      kendala: { label: 'Kendala', background: '#dbeafe', color: '#1d4ed8' },
-      lainnya: { label: 'Lainnya', background: '#f1f5f9', color: '#475569' },
-    }
+      saran: { label: "Saran", background: "#dcfce7", color: "#15803d" },
+      masukan: { label: "Masukan", background: "#ffedd5", color: "#c2410c" },
+      kendala: { label: "Kendala", background: "#dbeafe", color: "#1d4ed8" },
+      lainnya: { label: "Lainnya", background: "#f1f5f9", color: "#475569" },
+    };
 
-    return badges[type] || badges.lainnya
-  }
+    return badges[type] || badges.lainnya;
+  };
 
-  const [user, setUser] = useState(null)
-  const [checkingLogin, setCheckingLogin] = useState(true)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [user, setUser] = useState(null);
+  const [checkingLogin, setCheckingLogin] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // =====================================================
   // ROLE CHECKS — SUPPORT admin_unit
   // =====================================================
-  const currentRole = String(user?.role || '').toLowerCase()
+  const currentRole = String(user?.role || "").toLowerCase();
 
-  const isSuperAdmin = currentRole === 'super_admin'
-  const isAdminUnit = currentRole === 'admin_unit'
+  const isSuperAdmin = currentRole === "super_admin";
+  const isAdminUnit = currentRole === "admin_unit";
 
-  const isAdmin = 
-    currentRole === 'admin' ||
-    currentRole === 'super_admin' ||
-    currentRole === 'admin_unit'
+  const isAdmin =
+    currentRole === "admin" ||
+    currentRole === "super_admin" ||
+    currentRole === "admin_unit";
 
-  const [showUnitKerjaForm, setShowUnitKerjaForm] = useState(false)
-  const [selectedUnitKerja, setSelectedUnitKerja] = useState('')
-  const [unitKerjaOptions, setUnitKerjaOptions] = useState([])
-  const [unitKerjaLoading, setUnitKerjaLoading] = useState(false)
-  const [unitKerjaSaving, setUnitKerjaSaving] = useState(false)
-  const [unitKerjaError, setUnitKerjaError] = useState('')
+  const [showUnitKerjaForm, setShowUnitKerjaForm] = useState(false);
+  const [selectedUnitKerja, setSelectedUnitKerja] = useState("");
+  const [unitKerjaOptions, setUnitKerjaOptions] = useState([]);
+  const [unitKerjaLoading, setUnitKerjaLoading] = useState(false);
+  const [unitKerjaSaving, setUnitKerjaSaving] = useState(false);
+  const [unitKerjaError, setUnitKerjaError] = useState("");
 
   // =====================================================
   // SHORT LINK
   // =====================================================
 
-  const [url, setUrl] = useState('')
-  const [alias, setAlias] = useState('')
-  const [title, setTitle] = useState('')
-  const [shortLinkType, setShortLinkType] = useState('UMUM')
-  const [shortUrl, setShortUrl] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [shortLinks, setShortLinks] = useState([])
-  const [statsData, setStatsData] = useState([])
-  const [statsDays, setStatsDays] = useState(7)
-  const [todayClicks, setTodayClicks] = useState(0)
-  const [monthClicks, setMonthClicks] = useState(0)
+  const [url, setUrl] = useState("");
+  const [alias, setAlias] = useState("");
+  const [title, setTitle] = useState("");
+  const [shortLinkType, setShortLinkType] = useState("UMUM");
+  const [shortUrl, setShortUrl] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [shortLinks, setShortLinks] = useState([]);
+  const [statsData, setStatsData] = useState([]);
+  const [statsDays, setStatsDays] = useState(7);
+  const [todayClicks, setTodayClicks] = useState(0);
+  const [monthClicks, setMonthClicks] = useState(0);
 
-  const [editingShortLink, setEditingShortLink] = useState(null)
+  const [editingShortLink, setEditingShortLink] = useState(null);
   const [editShortLinkForm, setEditShortLinkForm] = useState({
-    original_url: '',
-    short_code: '',
-    title: '',
-  })
-  const [editShortLinkLoading, setEditShortLinkLoading] = useState(false)
-  const [editShortLinkError, setEditShortLinkError] = useState('')
+    original_url: "",
+    short_code: "",
+    title: "",
+  });
+  const [editShortLinkLoading, setEditShortLinkLoading] = useState(false);
+  const [editShortLinkError, setEditShortLinkError] = useState("");
 
   // =====================================================
   // DATA USER ADMIN
   // =====================================================
 
-  const [adminUsers, setAdminUsers] = useState([])
-  const [userSearch, setUserSearch] = useState('')
-  const [unitKerjas, setUnitKerjas] = useState([])
+  const [adminUsers, setAdminUsers] = useState([]);
+  const [userSearch, setUserSearch] = useState("");
+  const [unitKerjas, setUnitKerjas] = useState([]);
 
-  const [adminStats, setAdminStats] = useState(null)
-  const [qrScans, setQrScans] = useState(0)
+  const [adminStats, setAdminStats] = useState(null);
+  const [qrScans, setQrScans] = useState(0);
 
-  const [showAddUserForm, setShowAddUserForm] = useState(false)
+  const [showAddUserForm, setShowAddUserForm] = useState(false);
   const [userForm, setUserForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    user_type: 'UMUM',
-    role: 'user',
-    unit_kerja_id: '',
-  })
-  const [userFormLoading, setUserFormLoading] = useState(false)
-  const [userFormError, setUserFormError] = useState('')
+    name: "",
+    email: "",
+    password: "",
+    user_type: "UMUM",
+    role: "user",
+    unit_kerja_id: "",
+  });
+  const [userFormLoading, setUserFormLoading] = useState(false);
+  const [userFormError, setUserFormError] = useState("");
 
-  const [showEditUserForm, setShowEditUserForm] = useState(false)
-  const [editingUserId, setEditingUserId] = useState(null)
+  const [showEditUserForm, setShowEditUserForm] = useState(false);
+  const [editingUserId, setEditingUserId] = useState(null);
   const [editUserForm, setEditUserForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    user_type: 'UMUM',
-    role: 'user',
-    unit_kerja_id: '',
-  })
-  const [editUserLoading, setEditUserLoading] = useState(false)
-  const [editUserError, setEditUserError] = useState('')
+    name: "",
+    email: "",
+    password: "",
+    user_type: "UMUM",
+    role: "user",
+    unit_kerja_id: "",
+  });
+  const [editUserLoading, setEditUserLoading] = useState(false);
+  const [editUserError, setEditUserError] = useState("");
 
   // =====================================================
   // LINK HUB
   // =====================================================
 
-  const [linkHubs, setLinkHubs] = useState([])
-  const [linkHubLoading, setLinkHubLoading] = useState(false)
-  const [linkHubError, setLinkHubError] = useState('')
-  const [showLinkHubForm, setShowLinkHubForm] = useState(false)
+  const [linkHubs, setLinkHubs] = useState([]);
+  const [linkHubLoading, setLinkHubLoading] = useState(false);
+  const [linkHubError, setLinkHubError] = useState("");
+  const [showLinkHubForm, setShowLinkHubForm] = useState(false);
   const [linkHubForm, setLinkHubForm] = useState({
-    title: '',
-    description: '',
-    short_code: '',
-    type: 'UMUM',
-  })
+    title: "",
+    description: "",
+    short_code: "",
+    type: "UMUM",
+  });
 
   // ✨ STATE BARU: Logo untuk Link Hub
-  const [logoFile, setLogoFile] = useState(null)
-  const [removeLogo, setRemoveLogo] = useState(false)
+  const [logoFile, setLogoFile] = useState(null);
+  const [removeLogo, setRemoveLogo] = useState(false);
 
-  const [editingLinkHub, setEditingLinkHub] = useState(null)
+  const [editingLinkHub, setEditingLinkHub] = useState(null);
   const [editLinkHubForm, setEditLinkHubForm] = useState({
-    title: '',
-    description: '',
-    short_code: '',
-    type: 'UMUM',
-  })
-  const [editLinkHubLoading, setEditLinkHubLoading] = useState(false)
-  const [editLinkHubError, setEditLinkHubError] = useState('')
+    title: "",
+    description: "",
+    short_code: "",
+    type: "UMUM",
+  });
+  const [editLinkHubLoading, setEditLinkHubLoading] = useState(false);
+  const [editLinkHubError, setEditLinkHubError] = useState("");
 
-  const [selectedHub, setSelectedHub] = useState(null)
-  const [showHubQr, setShowHubQr] = useState(false)
+  const [selectedHub, setSelectedHub] = useState(null);
+  const [showHubQr, setShowHubQr] = useState(false);
 
-  const [linkItemForm, setLinkItemForm] = useState({ title: '', url: '' })
-  const [editingLinkItem, setEditingLinkItem] = useState(null)
-  const [linkItemLoading, setLinkItemLoading] = useState(false)
-  const [linkItemError, setLinkItemError] = useState('')
+  const [linkItemForm, setLinkItemForm] = useState({ title: "", url: "" });
+  const [editingLinkItem, setEditingLinkItem] = useState(null);
+  const [linkItemLoading, setLinkItemLoading] = useState(false);
+  const [linkItemError, setLinkItemError] = useState("");
 
   // =====================================================
   // PUBLIC LINK HUB
@@ -339,49 +333,51 @@ function App() {
 
   useEffect(() => {
     if (!isPublicHub) {
-      setPublicHubLoading(false)
-      return
+      setPublicHubLoading(false);
+      return;
     }
 
-    const path = window.location.pathname
-    const shortCode = path.replace(/^\/+/, '').replace(/\/$/, '')
+    const path = window.location.pathname;
+    const shortCode = path.replace(/^\/+/, "").replace(/\/$/, "");
 
     if (!shortCode) {
-      setPublicHubError('Link Hub tidak ditemukan.')
-      setPublicHubLoading(false)
-      return
+      setPublicHubError("Link Hub tidak ditemukan.");
+      setPublicHubLoading(false);
+      return;
     }
 
-    const token = localStorage.getItem('token')
-    const headers = { Accept: 'application/json' }
+    const token = localStorage.getItem("token");
+    const headers = { Accept: "application/json" };
     if (token) {
-      headers.Authorization = `Bearer ${token}`
+      headers.Authorization = `Bearer ${token}`;
     }
 
     fetch(`${API_URL}/api/public/link-hubs/${shortCode}`, { headers })
       .then(async (response) => {
-        const result = await response.json()
+        const result = await response.json();
 
         if (!response.ok) {
           if (result.error_code) {
-            setPublicHubErrorCode(result.error_code)
-            setPublicHubLockedUnit(result.locked_unit_kerja || '')
+            setPublicHubErrorCode(result.error_code);
+            setPublicHubLockedUnit(result.locked_unit_kerja || "");
           }
-          throw new Error(result.message || 'Link Hub tidak ditemukan atau tidak aktif.')
+          throw new Error(
+            result.message || "Link Hub tidak ditemukan atau tidak aktif.",
+          );
         }
 
-        return result
+        return result;
       })
       .then((result) => {
-        setPublicHub(result.data)
-        setPublicHubLoading(false)
+        setPublicHub(result.data);
+        setPublicHubLoading(false);
       })
       .catch((error) => {
-        console.error('Gagal mengambil Link Hub:', error)
-        setPublicHubError(error.message)
-        setPublicHubLoading(false)
-      })
-  }, [isPublicHub])
+        console.error("Gagal mengambil Link Hub:", error);
+        setPublicHubError(error.message);
+        setPublicHubLoading(false);
+      });
+  }, [isPublicHub]);
 
   // =====================================================
   // CEK LOGIN
@@ -389,309 +385,311 @@ function App() {
 
   useEffect(() => {
     if (isPublicHub) {
-      setCheckingLogin(false)
-      return
+      setCheckingLogin(false);
+      return;
     }
 
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem("token");
     if (!token) {
-      setCheckingLogin(false)
-      return
+      setCheckingLogin(false);
+      return;
     }
 
     fetch(`${API_URL}/api/user`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        Accept: 'application/json',
+        Accept: "application/json",
         Authorization: `Bearer ${token}`,
       },
     })
       .then((response) => {
         if (!response.ok) {
-          throw new Error('Token tidak valid')
+          throw new Error("Token tidak valid");
         }
-        return response.json()
+        return response.json();
       })
       .then((result) => {
-        setUser(result)
+        setUser(result);
       })
       .catch(() => {
-        localStorage.removeItem('token')
-        setUser(null)
+        localStorage.removeItem("token");
+        setUser(null);
       })
       .finally(() => {
-        setCheckingLogin(false)
-      })
-  }, [isPublicHub])
+        setCheckingLogin(false);
+      });
+  }, [isPublicHub]);
 
   // =====================================================
   // AMBIL DATA SHORT LINK
   // =====================================================
 
   useEffect(() => {
-    if (!user) return
+    if (!user) return;
 
-    const token = localStorage.getItem('token')
-    if (!token) return
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
     fetch(
-      isAdmin ? `${API_URL}/api/admin/short-links` : `${API_URL}/api/short-links`,
+      isAdmin
+        ? `${API_URL}/api/admin/short-links`
+        : `${API_URL}/api/short-links`,
       {
-        method: 'GET',
+        method: "GET",
         headers: {
-          Accept: 'application/json',
+          Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     )
       .then((response) => {
         if (!response.ok) {
-          throw new Error('Gagal mengambil data short link')
+          throw new Error("Gagal mengambil data short link");
         }
-        return response.json()
+        return response.json();
       })
       .then((result) => {
-        setShortLinks(result.data || [])
+        setShortLinks(result.data || []);
       })
       .catch((error) => {
-        console.error('Gagal mengambil data:', error)
-      })
-  }, [user])
+        console.error("Gagal mengambil data:", error);
+      });
+  }, [user]);
 
   // =====================================================
   // AMBIL DATA LINK HUB
   // =====================================================
 
   useEffect(() => {
-    if (!user) return
+    if (!user) return;
 
-    const token = localStorage.getItem('token')
-    if (!token) return
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-    setLinkHubLoading(true)
+    setLinkHubLoading(true);
 
     fetch(`${API_URL}/api/link-hubs`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        Accept: 'application/json',
+        Accept: "application/json",
         Authorization: `Bearer ${token}`,
       },
     })
       .then((response) => {
         if (!response.ok) {
-          throw new Error('Gagal mengambil data Link Hub')
+          throw new Error("Gagal mengambil data Link Hub");
         }
-        return response.json()
+        return response.json();
       })
       .then((result) => {
-        setLinkHubs(result.data || [])
-        setLinkHubError('')
+        setLinkHubs(result.data || []);
+        setLinkHubError("");
       })
       .catch((error) => {
-        console.error('Gagal mengambil data Link Hub:', error)
-        setLinkHubError(error.message)
+        console.error("Gagal mengambil data Link Hub:", error);
+        setLinkHubError(error.message);
       })
       .finally(() => {
-        setLinkHubLoading(false)
-      })
-  }, [user])
+        setLinkHubLoading(false);
+      });
+  }, [user]);
 
   // =====================================================
   // AMBIL DATA STATISTIK
   // =====================================================
 
   useEffect(() => {
-    if (!user) return
+    if (!user) return;
 
-    const token = localStorage.getItem('token')
-    if (!token) return
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
     fetch(`${API_URL}/api/short-links/stats?days=${statsDays}`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        Accept: 'application/json',
+        Accept: "application/json",
         Authorization: `Bearer ${token}`,
       },
     })
       .then((response) => {
         if (!response.ok) {
-          throw new Error('Gagal mengambil data statistik')
+          throw new Error("Gagal mengambil data statistik");
         }
-        return response.json()
+        return response.json();
       })
       .then((result) => {
-        setStatsData(result.data || [])
+        setStatsData(result.data || []);
       })
       .catch((error) => {
-        console.error('Gagal mengambil statistik:', error)
-      })
-  }, [user, statsDays])
+        console.error("Gagal mengambil statistik:", error);
+      });
+  }, [user, statsDays]);
 
   // =====================================================
   // AMBIL KLIK HARI INI & BULAN INI
   // =====================================================
 
   useEffect(() => {
-    if (!user) return
+    if (!user) return;
 
-    const token = localStorage.getItem('token')
-    if (!token) return
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
     fetch(`${API_URL}/api/short-links/today-clicks`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        Accept: 'application/json',
+        Accept: "application/json",
         Authorization: `Bearer ${token}`,
       },
     })
       .then((response) => response.json())
       .then((result) => {
-        setTodayClicks(result.total_clicks_today ?? 0)
+        setTodayClicks(result.total_clicks_today ?? 0);
       })
       .catch((error) => {
-        console.error('Gagal mengambil klik hari ini:', error)
-      })
+        console.error("Gagal mengambil klik hari ini:", error);
+      });
 
     fetch(`${API_URL}/api/short-links/month-clicks`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        Accept: 'application/json',
+        Accept: "application/json",
         Authorization: `Bearer ${token}`,
       },
     })
       .then((response) => response.json())
       .then((result) => {
-        setMonthClicks(result.total_clicks_this_month ?? 0)
+        setMonthClicks(result.total_clicks_this_month ?? 0);
       })
       .catch((error) => {
-        console.error('Gagal mengambil klik bulan ini:', error)
-      })
-  }, [user])
+        console.error("Gagal mengambil klik bulan ini:", error);
+      });
+  }, [user]);
 
   // =====================================================
   // AMBIL DATA USER ADMIN
   // =====================================================
 
   useEffect(() => {
-    if (!user || !isAdmin) return
+    if (!user || !isAdmin) return;
 
-    const token = localStorage.getItem('token')
-    if (!token) return
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
     fetch(`${API_URL}/api/admin/users`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        Accept: 'application/json',
+        Accept: "application/json",
         Authorization: `Bearer ${token}`,
       },
     })
       .then((response) => {
         if (!response.ok) {
-          throw new Error('Gagal mengambil data user')
+          throw new Error("Gagal mengambil data user");
         }
-        return response.json()
+        return response.json();
       })
       .then((result) => {
-        setAdminUsers(result.data || [])
+        setAdminUsers(result.data || []);
       })
       .catch((error) => {
-        console.error('Gagal mengambil data user:', error)
-      })
-  }, [user])
+        console.error("Gagal mengambil data user:", error);
+      });
+  }, [user]);
 
   // =====================================================
   // AMBIL DATA UNIT KERJA
   // =====================================================
 
   useEffect(() => {
-    if (!user || !isAdmin) return
+    if (!user || !isAdmin) return;
 
-    const token = localStorage.getItem('token')
-    if (!token) return
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
     fetch(`${API_URL}/api/admin/unit-kerjas`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        Accept: 'application/json',
+        Accept: "application/json",
         Authorization: `Bearer ${token}`,
       },
     })
       .then((response) => {
         if (!response.ok) {
-          throw new Error('Gagal mengambil data unit kerja')
+          throw new Error("Gagal mengambil data unit kerja");
         }
-        return response.json()
+        return response.json();
       })
       .then((result) => {
-        setUnitKerjas(result.data || [])
+        setUnitKerjas(result.data || []);
       })
       .catch((error) => {
-        console.error('Gagal mengambil unit kerja:', error)
-      })
-  }, [user, isAdmin])
+        console.error("Gagal mengambil unit kerja:", error);
+      });
+  }, [user, isAdmin]);
 
   // =====================================================
   // AMBIL STATISTIK ADMIN (PARALLEL FETCH)
   // =====================================================
 
   useEffect(() => {
-    if (!user || !isAdmin) return
+    if (!user || !isAdmin) return;
 
-    const token = localStorage.getItem('token')
-    if (!token) return
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
     const headers = {
-      Accept: 'application/json',
+      Accept: "application/json",
       Authorization: `Bearer ${token}`,
-    }
+    };
 
-    const fetchAdminStats = fetch(
-      `${API_URL}/api/admin/statistics`,
-      { method: 'GET', headers }
-    ).then((response) => response.json())
+    const fetchAdminStats = fetch(`${API_URL}/api/admin/statistics`, {
+      method: "GET",
+      headers,
+    }).then((response) => response.json());
 
-    const fetchQrScans = fetch(
-      `${API_URL}/api/short-links/qr-scans`,
-      { method: 'GET', headers }
-    ).then((response) => response.json())
+    const fetchQrScans = fetch(`${API_URL}/api/short-links/qr-scans`, {
+      method: "GET",
+      headers,
+    }).then((response) => response.json());
 
     Promise.all([fetchAdminStats, fetchQrScans])
       .then(([statsResult, qrResult]) => {
-        setAdminStats(statsResult.data || null)
-        setQrScans(qrResult.total_qr_scans || 0)
+        setAdminStats(statsResult.data || null);
+        setQrScans(qrResult.total_qr_scans || 0);
       })
       .catch((error) => {
-        console.error('Gagal mengambil statistik admin:', error)
-        setQrScans(0)
-      })
-  }, [user, isAdmin])
+        console.error("Gagal mengambil statistik admin:", error);
+        setQrScans(0);
+      });
+  }, [user, isAdmin]);
 
   // =====================================================
   // LOGIN BERHASIL
   // =====================================================
 
   const handleLogin = (loggedInUser) => {
-    setUser(loggedInUser)
+    setUser(loggedInUser);
 
-    const role = String(loggedInUser.role || '').toLowerCase()
-    const userType = String(loggedInUser.user_type || '').toUpperCase()
+    const role = String(loggedInUser.role || "").toLowerCase();
+    const userType = String(loggedInUser.user_type || "").toUpperCase();
 
-    if (role === 'admin' || role === 'super_admin' || role === 'admin_unit') {
-      setShowUnitKerjaForm(false)
-      return
+    if (role === "admin" || role === "super_admin" || role === "admin_unit") {
+      setShowUnitKerjaForm(false);
+      return;
     }
 
-    if (userType === 'UMUM') {
-      setShowUnitKerjaForm(false)
-      return
+    if (userType === "UMUM") {
+      setShowUnitKerjaForm(false);
+      return;
     }
 
     if (!loggedInUser.unit_kerja_id) {
-      setShowUnitKerjaForm(true)
+      setShowUnitKerjaForm(true);
     } else {
-      setShowUnitKerjaForm(false)
+      setShowUnitKerjaForm(false);
     }
-  }
+  };
 
   // =====================================================
   // SIMPAN UNIT KERJA USER
@@ -699,160 +697,170 @@ function App() {
 
   const handleSaveUnitKerja = async () => {
     if (!selectedUnitKerja) {
-      setUnitKerjaError('Silakan pilih unit kerja terlebih dahulu.')
-      return
+      setUnitKerjaError("Silakan pilih unit kerja terlebih dahulu.");
+      return;
     }
 
     try {
-      setUnitKerjaSaving(true)
-      setUnitKerjaError('')
+      setUnitKerjaSaving(true);
+      setUnitKerjaError("");
 
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem("token");
 
       const response = await fetch(`${API_URL}/api/user/unit-kerja`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
+          Accept: "application/json",
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           unit_kerja_id: selectedUnitKerja,
         }),
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || 'Gagal menyimpan unit kerja.')
+        throw new Error(result.message || "Gagal menyimpan unit kerja.");
       }
 
-      setUser(result.user)
-      setShowUnitKerjaForm(false)
-      setSelectedUnitKerja('')
-      toast.success('Unit kerja berhasil disimpan.')
+      setUser(result.user);
+      setShowUnitKerjaForm(false);
+      setSelectedUnitKerja("");
+      toast.success("Unit kerja berhasil disimpan.");
     } catch (error) {
-      console.error('Gagal menyimpan unit kerja:', error)
-      setUnitKerjaError(error.message)
-      toast.error(error.message)
+      console.error("Gagal menyimpan unit kerja:", error);
+      setUnitKerjaError(error.message);
+      toast.error(error.message);
     } finally {
-      setUnitKerjaSaving(false)
+      setUnitKerjaSaving(false);
     }
-  }
+  };
 
   const handleSubmitFeedback = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!feedbackTitle.trim()) {
-      setFeedbackError('Judul masukan wajib diisi.')
-      setTimeout(() => { setFeedbackError('') }, 4000)
-      return
+      setFeedbackError("Judul masukan wajib diisi.");
+      setTimeout(() => {
+        setFeedbackError("");
+      }, 4000);
+      return;
     }
 
     if (!feedbackMessage.trim()) {
-      setFeedbackError('Saran atau masukan wajib diisi.')
-      setTimeout(() => { setFeedbackError('') }, 4000)
-      return
+      setFeedbackError("Saran atau masukan wajib diisi.");
+      setTimeout(() => {
+        setFeedbackError("");
+      }, 4000);
+      return;
     }
 
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem("token");
 
       const response = await fetch(`${API_URL}/api/feedbacks`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
-          Accept: 'application/json',
+          Accept: "application/json",
         },
         body: JSON.stringify({
           type: feedbackType,
           title: feedbackTitle,
           message: feedbackMessage,
         }),
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
-        console.error('FEEDBACK ERROR:', result)
+        console.error("FEEDBACK ERROR:", result);
 
         const errorMessage = result.errors
           ? Object.values(result.errors)[0]?.[0]
-          : result.message
+          : result.message;
 
-        setFeedbackError(errorMessage || 'Gagal mengirim masukan.')
-        setTimeout(() => { setFeedbackError('') }, 4000)
-        return
+        setFeedbackError(errorMessage || "Gagal mengirim masukan.");
+        setTimeout(() => {
+          setFeedbackError("");
+        }, 4000);
+        return;
       }
 
-      setFeedbackSuccess('Saran dan masukan berhasil dikirim.')
-      setFeedbackTitle('')
-      setFeedbackMessage('')
-      setFeedbackType('saran')
+      setFeedbackSuccess("Saran dan masukan berhasil dikirim.");
+      setFeedbackTitle("");
+      setFeedbackMessage("");
+      setFeedbackType("saran");
 
-      setTimeout(() => { setFeedbackSuccess('') }, 4000)
+      setTimeout(() => {
+        setFeedbackSuccess("");
+      }, 4000);
     } catch (error) {
-      console.error('FEEDBACK ERROR:', error)
-      setFeedbackError('Tidak dapat terhubung ke server.')
-      setTimeout(() => { setFeedbackError('') }, 4000)
+      console.error("FEEDBACK ERROR:", error);
+      setFeedbackError("Tidak dapat terhubung ke server.");
+      setTimeout(() => {
+        setFeedbackError("");
+      }, 4000);
     }
-  }
+  };
 
   // =====================================================
   // AUTO-CHECK: Sembunyikan form "Lengkapi Profil" untuk user UMUM
   // =====================================================
   useEffect(() => {
-    if (!user) return
+    if (!user) return;
 
-    const role = String(user.role || '').toLowerCase()
-    const userType = String(user.user_type || '').toUpperCase()
+    const role = String(user.role || "").toLowerCase();
+    const userType = String(user.user_type || "").toUpperCase();
 
     if (
-      role === 'admin' || 
-      role === 'super_admin' || 
-      role === 'admin_unit' ||
-      userType === 'UMUM'
+      role === "admin" ||
+      role === "super_admin" ||
+      role === "admin_unit" ||
+      userType === "UMUM"
     ) {
-      setShowUnitKerjaForm(false)
-      return
+      setShowUnitKerjaForm(false);
+      return;
     }
 
     if (!user.unit_kerja_id) {
-      setShowUnitKerjaForm(true)
+      setShowUnitKerjaForm(true);
     } else {
-      setShowUnitKerjaForm(false)
+      setShowUnitKerjaForm(false);
     }
-  }, [user])
+  }, [user]);
 
   // =====================================================
   // AMBIL DAFTAR UNIT KERJA UNTUK USER
   // =====================================================
 
   useEffect(() => {
-    if (!showUnitKerjaForm) return
+    if (!showUnitKerjaForm) return;
 
-    setUnitKerjaLoading(true)
-    setUnitKerjaError('')
+    setUnitKerjaLoading(true);
+    setUnitKerjaError("");
 
     fetch(`${API_URL}/api/unit-kerjas`)
       .then((response) => {
         if (!response.ok) {
-          throw new Error('Gagal mengambil daftar unit kerja.')
+          throw new Error("Gagal mengambil daftar unit kerja.");
         }
-        return response.json()
+        return response.json();
       })
       .then((result) => {
-        setUnitKerjaOptions(result.data || [])
+        setUnitKerjaOptions(result.data || []);
       })
       .catch((error) => {
-        console.error('Gagal mengambil unit kerja:', error)
-        setUnitKerjaError(error.message)
+        console.error("Gagal mengambil unit kerja:", error);
+        setUnitKerjaError(error.message);
       })
       .finally(() => {
-        setUnitKerjaLoading(false)
-      })
-  }, [showUnitKerjaForm])
+        setUnitKerjaLoading(false);
+      });
+  }, [showUnitKerjaForm]);
 
   // =====================================================
   // AMBIL DATA SARAN & MASUKAN UNTUK ADMIN
@@ -860,543 +868,575 @@ function App() {
 
   const loadFeedbacksData = async () => {
     try {
-      setFeedbackLoading(true)
+      setFeedbackLoading(true);
 
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem("token");
 
       const response = await fetch(`${API_URL}/api/admin/feedbacks`, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          Accept: 'application/json',
+          Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
-        console.error('FEEDBACK LIST ERROR:', result)
-        return
+        console.error("FEEDBACK LIST ERROR:", result);
+        return;
       }
 
-      setFeedbacks(result.data || [])
+      setFeedbacks(result.data || []);
     } catch (error) {
-      console.error('FEEDBACK LIST ERROR:', error)
+      console.error("FEEDBACK LIST ERROR:", error);
     } finally {
-      setFeedbackLoading(false)
+      setFeedbackLoading(false);
     }
-  }
+  };
 
   const handleLoadFeedbacks = async () => {
-    await loadFeedbacksData()
-    navigateTo('feedback-list')
-  }
+    await loadFeedbacksData();
+    navigateTo("feedback-list");
+  };
 
   const handleDeleteFeedback = async (feedback) => {
     const yakin = await confirm({
-      title: 'Hapus Masukan',
+      title: "Hapus Masukan",
       message: `Yakin ingin menghapus masukan "${feedback.title}"?`,
-      confirmText: 'Ya, Hapus',
-      cancelText: 'Batal',
-      type: 'danger',
-    })
+      confirmText: "Ya, Hapus",
+      cancelText: "Batal",
+      type: "danger",
+    });
 
-    if (!yakin) return
+    if (!yakin) return;
 
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem("token");
 
     if (!token) {
-      toast.error('Sesi login tidak ditemukan.')
-      return
+      toast.error("Sesi login tidak ditemukan.");
+      return;
     }
 
     try {
       const response = await fetch(
         `${API_URL}/api/admin/feedbacks/${feedback.id}`,
         {
-          method: 'DELETE',
+          method: "DELETE",
           headers: {
-            Accept: 'application/json',
+            Accept: "application/json",
             Authorization: `Bearer ${token}`,
           },
-        }
-      )
+        },
+      );
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || 'Gagal menghapus masukan.')
+        throw new Error(result.message || "Gagal menghapus masukan.");
       }
 
-      setFeedbacks((prev) => prev.filter((item) => item.id !== feedback.id))
+      setFeedbacks((prev) => prev.filter((item) => item.id !== feedback.id));
 
       if (selectedFeedback?.id === feedback.id) {
-        setSelectedFeedback(null)
+        setSelectedFeedback(null);
       }
 
-      toast.success('Saran & masukan berhasil dihapus.')
+      toast.success("Saran & masukan berhasil dihapus.");
     } catch (error) {
-      console.error('DELETE FEEDBACK ERROR:', error)
-      toast.error(error.message)
+      console.error("DELETE FEEDBACK ERROR:", error);
+      toast.error(error.message);
     }
-  }
+  };
 
   const toggleLinkHubStatus = async (hub) => {
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem("token");
 
     if (!token) {
-      toast.error('Sesi login tidak ditemukan. Silakan login kembali.')
-      return
+      toast.error("Sesi login tidak ditemukan. Silakan login kembali.");
+      return;
     }
 
     try {
       const response = await fetch(
         `${API_URL}/api/link-hubs/${hub.id}/status`,
         {
-          method: 'PATCH',
+          method: "PATCH",
           headers: {
-            Accept: 'application/json',
+            Accept: "application/json",
             Authorization: `Bearer ${token}`,
           },
-        }
-      )
+        },
+      );
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || 'Gagal mengubah status Link Hub.')
+        throw new Error(result.message || "Gagal mengubah status Link Hub.");
       }
 
       setLinkHubs((prevHubs) =>
         prevHubs.map((item) =>
-          item.id === hub.id ? { ...item, ...result.data } : item
-        )
-      )
+          item.id === hub.id ? { ...item, ...result.data } : item,
+        ),
+      );
 
       setSelectedHub((prev) => {
-        if (!prev || prev.id !== hub.id) return prev
-        return { ...prev, ...result.data }
-      })
+        if (!prev || prev.id !== hub.id) return prev;
+        return { ...prev, ...result.data };
+      });
 
-      toast.success(result.message)
+      toast.success(result.message);
     } catch (error) {
-      console.error('Gagal mengubah status Link Hub:', error)
-      toast.error(error.message || 'Gagal mengubah status Link Hub.')
+      console.error("Gagal mengubah status Link Hub:", error);
+      toast.error(error.message || "Gagal mengubah status Link Hub.");
     }
-  }
+  };
 
   const handleDeleteLinkHub = async (hub) => {
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem("token");
 
     if (!token) {
-      toast.error('Sesi login tidak ditemukan. Silakan login kembali.')
-      return
+      toast.error("Sesi login tidak ditemukan. Silakan login kembali.");
+      return;
     }
 
     const yakin = await confirm({
-      title: 'Hapus Link Hub',
+      title: "Hapus Link Hub",
       message: `Yakin ingin menghapus Link Hub "${hub.title}"?`,
-      confirmText: 'Ya, Hapus',
-      cancelText: 'Batal',
-      type: 'danger',
-    })
+      confirmText: "Ya, Hapus",
+      cancelText: "Batal",
+      type: "danger",
+    });
 
-    if (!yakin) return
+    if (!yakin) return;
 
     try {
       const response = await fetch(`${API_URL}/api/link-hubs/${hub.id}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
-          Accept: 'application/json',
+          Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || 'Gagal menghapus Link Hub.')
+        throw new Error(result.message || "Gagal menghapus Link Hub.");
       }
 
-      setLinkHubs((prevHubs) => prevHubs.filter((item) => item.id !== hub.id))
+      setLinkHubs((prevHubs) => prevHubs.filter((item) => item.id !== hub.id));
 
       if (selectedHub && selectedHub.id === hub.id) {
-        setSelectedHub(null)
+        setSelectedHub(null);
       }
 
       if (editingLinkHub && editingLinkHub.id === hub.id) {
-        setEditingLinkHub(null)
+        setEditingLinkHub(null);
         setEditLinkHubForm({
-          title: '',
-          description: '',
-          short_code: '',
-          type: 'UMUM',
-        })
-        setEditLinkHubError('')
+          title: "",
+          description: "",
+          short_code: "",
+          type: "UMUM",
+        });
+        setEditLinkHubError("");
       }
 
       if (showHubQr && showHubQr.id === hub.id) {
-        setShowHubQr(false)
+        setShowHubQr(false);
       }
 
-      toast.success(result.message || 'Link Hub berhasil dihapus.')
+      // ✨ Modal card notifikasi
+      setNotifModal({
+        isOpen: true,
+        variant: "success",
+        emoji: "🗑️",
+        title: "Link Hub Berhasil Dihapus",
+        message: `Link Hub "${hub.title}" telah dihapus dari sistem.`,
+      });
     } catch (error) {
-      console.error('Gagal menghapus Link Hub:', error)
-      toast.error(error.message || 'Gagal menghapus Link Hub.')
+      console.error("Gagal menghapus Link Hub:", error);
+      toast.error(error.message || "Gagal menghapus Link Hub.");
     }
-  }
+  };
 
   const startEditLinkHub = (hub) => {
     setEditingLinkHub({
       id: hub.id,
-      title: hub.title || '',
-      description: hub.description || '',
-      short_code: hub.short_code || '',
+      title: hub.title || "",
+      description: hub.description || "",
+      short_code: hub.short_code || "",
       logo_url: hub.logo_url || null,
-    })
+    });
 
     setEditLinkHubForm({
-      title: hub.title || '',
-      description: hub.description || '',
-      short_code: hub.short_code || '',
-      type: hub.type || 'UMUM',
-      locked_unit_kerja_id: hub.locked_unit_kerja_id || '',
-    })
+      title: hub.title || "",
+      description: hub.description || "",
+      short_code: hub.short_code || "",
+      type: hub.type || "UMUM",
+      locked_unit_kerja_id: hub.locked_unit_kerja_id || "",
+    });
 
     // ✨ Reset state logo setiap kali mulai edit
-    setLogoFile(null)
-    setRemoveLogo(false)
-    setEditLinkHubError('')
-  }
+    setLogoFile(null);
+    setRemoveLogo(false);
+    setEditLinkHubError("");
+  };
 
   const handleUpdateLinkHub = async () => {
     if (!editingLinkHub) {
-      setEditLinkHubError('Link Hub yang sedang diedit tidak ditemukan.')
-      return
+      setEditLinkHubError("Link Hub yang sedang diedit tidak ditemukan.");
+      return;
     }
 
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem("token");
 
     if (!token) {
-      setEditLinkHubError('Sesi login tidak ditemukan. Silakan login kembali.')
-      return
+      setEditLinkHubError("Sesi login tidak ditemukan. Silakan login kembali.");
+      return;
     }
 
-    const titleValue = editLinkHubForm.title.trim()
-    const descriptionValue = editLinkHubForm.description.trim()
-    const shortCodeValue = editLinkHubForm.short_code.trim()
+    const titleValue = editLinkHubForm.title.trim();
+    const descriptionValue = editLinkHubForm.description.trim();
+    const shortCodeValue = editLinkHubForm.short_code.trim();
 
     if (!titleValue) {
-      setEditLinkHubError('Judul Link Hub wajib diisi.')
-      return
+      setEditLinkHubError("Judul Link Hub wajib diisi.");
+      return;
     }
 
     if (!shortCodeValue) {
-      setEditLinkHubError('Alias Link Hub wajib diisi.')
-      return
+      setEditLinkHubError("Alias Link Hub wajib diisi.");
+      return;
     }
 
     try {
-      setEditLinkHubLoading(true)
-      setEditLinkHubError('')
+      setEditLinkHubLoading(true);
+      setEditLinkHubError("");
 
-      const updateUrl = `${API_URL}/api/link-hubs/${editingLinkHub.id}`
+      const updateUrl = `${API_URL}/api/link-hubs/${editingLinkHub.id}`;
 
       // ✨ Pakai FormData karena ada upload file logo
-      const formData = new FormData()
-      formData.append('title', titleValue)
-      formData.append('description', descriptionValue || '')
-      formData.append('short_code', shortCodeValue)
-      formData.append('type', editLinkHubForm.type || 'UMUM')
-      formData.append('locked_unit_kerja_id', editLinkHubForm.locked_unit_kerja_id || '')
-      formData.append('_method', 'PUT')   // ← Laravel method spoofing
+      const formData = new FormData();
+      formData.append("title", titleValue);
+      formData.append("description", descriptionValue || "");
+      formData.append("short_code", shortCodeValue);
+      formData.append("type", editLinkHubForm.type || "UMUM");
+      formData.append(
+        "locked_unit_kerja_id",
+        editLinkHubForm.locked_unit_kerja_id || "",
+      );
+      formData.append("_method", "PUT"); // ← Laravel method spoofing
 
       if (logoFile) {
-        formData.append('logo', logoFile)
+        formData.append("logo", logoFile);
       }
       if (removeLogo) {
-        formData.append('remove_logo', 'true')
+        formData.append("remove_logo", "true");
       }
 
       const response = await fetch(updateUrl, {
-        method: 'POST',   // ← POST + _method=PUT untuk FormData
+        method: "POST", // ← POST + _method=PUT untuk FormData
         headers: {
-          Accept: 'application/json',
+          Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: formData,
-      })
+      });
 
-      const responseText = await response.text()
-      let result = {}
+      const responseText = await response.text();
+      let result = {};
 
       try {
-        result = responseText ? JSON.parse(responseText) : {}
+        result = responseText ? JSON.parse(responseText) : {};
       } catch (parseError) {
-        console.error('Response bukan JSON:', responseText)
+        console.error("Response bukan JSON:", responseText);
         throw new Error(
-          `Server mengembalikan response yang tidak valid (HTTP ${response.status}).`
-        )
+          `Server mengembalikan response yang tidak valid (HTTP ${response.status}).`,
+        );
       }
 
       if (!response.ok) {
         const validationMessage = result.errors
-          ? Object.values(result.errors).flat().join(' ')
-          : ''
+          ? Object.values(result.errors).flat().join(" ")
+          : "";
 
         throw new Error(
           validationMessage ||
             result.message ||
-            `Gagal memperbarui Link Hub (HTTP ${response.status}).`
-        )
+            `Gagal memperbarui Link Hub (HTTP ${response.status}).`,
+        );
       }
 
       if (!result.data) {
         throw new Error(
-          'Server berhasil merespons, tetapi data Link Hub tidak ditemukan.'
-        )
+          "Server berhasil merespons, tetapi data Link Hub tidak ditemukan.",
+        );
       }
 
       setLinkHubs((prevHubs) =>
         prevHubs.map((hub) =>
-          hub.id === editingLinkHub.id ? { ...hub, ...result.data } : hub
-        )
-      )
+          hub.id === editingLinkHub.id ? { ...hub, ...result.data } : hub,
+        ),
+      );
 
       setSelectedHub((prev) => {
-        if (!prev || prev.id !== editingLinkHub.id) return prev
-        return { ...prev, ...result.data }
-      })
+        if (!prev || prev.id !== editingLinkHub.id) return prev;
+        return { ...prev, ...result.data };
+      });
 
-      setEditingLinkHub(null)
+      setEditingLinkHub(null);
 
       setEditLinkHubForm({
-        title: '',
-        description: '',
-        short_code: '',
-        type: 'UMUM',
-        locked_unit_kerja_id: '',
-      })
+        title: "",
+        description: "",
+        short_code: "",
+        type: "UMUM",
+        locked_unit_kerja_id: "",
+      });
 
       // ✨ Reset state logo setelah sukses
-      setLogoFile(null)
-      setRemoveLogo(false)
+      setLogoFile(null);
+      setRemoveLogo(false);
 
-      setEditLinkHubError('')
+      setEditLinkHubError("");
 
-      toast.success('Link Hub berhasil diperbarui.')
+      // ✨ Modal card notifikasi
+      setNotifModal({
+        isOpen: true,
+        variant: "success",
+        emoji: "✅",
+        title: "Link Hub Berhasil Diperbarui",
+        message: "Perubahan pada Link Hub sudah tersimpan.",
+      });
     } catch (error) {
-      console.error('GAGAL UPDATE LINK HUB:', error)
-      setEditLinkHubError(error.message || 'Gagal memperbarui Link Hub.')
-      toast.error(error.message || 'Gagal memperbarui Link Hub.')
+      console.error("GAGAL UPDATE LINK HUB:", error);
+      setEditLinkHubError(error.message || "Gagal memperbarui Link Hub.");
+      toast.error(error.message || "Gagal memperbarui Link Hub.");
     } finally {
-      setEditLinkHubLoading(false)
+      setEditLinkHubLoading(false);
     }
-  }
+  };
 
   // =====================================================
   // CREATE LINK HUB — DENGAN LOGIKA KHUSUS OPD
   // =====================================================
 
-  const createLinkHub = async (e, aliasOverride = null, lockedUnitKerjaId = null) => {
-    e.preventDefault()
+  const createLinkHub = async (
+    e,
+    aliasOverride = null,
+    lockedUnitKerjaId = null,
+  ) => {
+    e.preventDefault();
 
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem("token");
 
     if (!token) {
-      setLinkHubError('Token login tidak ditemukan.')
-      return
+      setLinkHubError("Token login tidak ditemukan.");
+      return;
     }
 
     if (!linkHubForm.title) {
-      setLinkHubError('Judul Link Hub wajib diisi.')
-      return
+      setLinkHubError("Judul Link Hub wajib diisi.");
+      return;
     }
 
-    const finalAlias = aliasOverride || linkHubForm.short_code
+    const finalAlias = aliasOverride || linkHubForm.short_code;
 
     if (!finalAlias) {
-      setLinkHubError('Alias Link Hub wajib diisi.')
-      return
+      setLinkHubError("Alias Link Hub wajib diisi.");
+      return;
     }
 
     try {
-      setLinkHubLoading(true)
-      setLinkHubError('')
+      setLinkHubLoading(true);
+      setLinkHubError("");
 
       // ✨ Pakai FormData karena ada upload file logo
-      const formData = new FormData()
-      formData.append('title', linkHubForm.title)
-      formData.append('description', linkHubForm.description || '')
-      formData.append('short_code', finalAlias)
-      formData.append('type', linkHubForm.type)
-      formData.append('locked_unit_kerja_id', lockedUnitKerjaId || '')
+      const formData = new FormData();
+      formData.append("title", linkHubForm.title);
+      formData.append("description", linkHubForm.description || "");
+      formData.append("short_code", finalAlias);
+      formData.append("type", linkHubForm.type);
+      formData.append("locked_unit_kerja_id", lockedUnitKerjaId || "");
 
       if (logoFile) {
-        formData.append('logo', logoFile)
+        formData.append("logo", logoFile);
       }
 
       const response = await fetch(`${API_URL}/api/link-hubs`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          Accept: 'application/json',
+          Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: formData,
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
         // ✨ LOGIKA KHUSUS LINK HUB: Jika alias sudah dimiliki oleh OPD user
-        if (result.error_code === 'alias_already_owned_by_you') {
+        if (result.error_code === "alias_already_owned_by_you") {
           setNotifModal({
             isOpen: true,
-            variant: 'info',
-            emoji: 'ℹ️',
-            title: 'Alias Sudah Dimiliki OPD Anda',
-            message: 'Anda sudah memiliki Link Hub dengan alias ini. Sistem akan mengarahkan Anda ke halaman edit.',
-          })
-          
-          setShowLinkHubForm(false)
-          
-          const existingHub = linkHubs.find(hub => hub.id === result.existing_id)
+            variant: "info",
+            emoji: "ℹ️",
+            title: "Alias Sudah Dimiliki OPD Anda",
+            message:
+              "Anda sudah memiliki Link Hub dengan alias ini. Sistem akan mengarahkan Anda ke halaman edit.",
+          });
+
+          setShowLinkHubForm(false);
+
+          const existingHub = linkHubs.find(
+            (hub) => hub.id === result.existing_id,
+          );
           if (existingHub) {
-            startEditLinkHub(existingHub)
+            startEditLinkHub(existingHub);
           }
-          return
+          return;
         }
 
         // ✨ LOGIKA KHUSUS LINK HUB: Jika alias terkunci untuk OPD lain
-        if (result.error_code === 'alias_locked_to_other') {
+        if (result.error_code === "alias_locked_to_other") {
           setNotifModal({
             isOpen: true,
-            variant: 'error',
-            emoji: '🚫',
-            title: 'Alias Terkunci OPD Lain',
-            message: 'Alias ini sudah digunakan dan dikunci oleh OPD lain. Silakan pilih alias yang berbeda.',
-          })
-          return
+            variant: "error",
+            emoji: "🚫",
+            title: "Alias Terkunci OPD Lain",
+            message:
+              "Alias ini sudah digunakan dan dikunci oleh OPD lain. Silakan pilih alias yang berbeda.",
+          });
+          return;
         }
 
         // Error biasa (termasuk alias duplikat biasa)
         const validationMessage = result.errors
-          ? Object.values(result.errors).flat().join(' ')
-          : ''
+          ? Object.values(result.errors).flat().join(" ")
+          : "";
 
         throw new Error(
-          validationMessage || result.message || 'Gagal membuat Link Hub.'
-        )
+          validationMessage || result.message || "Gagal membuat Link Hub.",
+        );
       }
 
-      setLinkHubs((prev) => [result.data, ...prev])
+      setLinkHubs((prev) => [result.data, ...prev]);
 
       setLinkHubForm({
-        title: '',
-        description: '',
-        short_code: '',
-        type: 'UMUM',
-      })
+        title: "",
+        description: "",
+        short_code: "",
+        type: "UMUM",
+      });
 
       // ✨ Reset state logo setelah sukses
-      setLogoFile(null)
-      setRemoveLogo(false)
+      setLogoFile(null);
+      setRemoveLogo(false);
 
-      setShowLinkHubForm(false)
-      setLinkHubError('')
+      setShowLinkHubForm(false);
+      setLinkHubError("");
 
-      toast.success('Link Hub berhasil dibuat.')
+      // ✨ Modal card notifikasi (bukan toast)
+      setNotifModal({
+        isOpen: true,
+        variant: "success",
+        emoji: "✅",
+        title: "Link Hub Berhasil Dibuat",
+        message: `Link Hub "${linkHubForm.title}" berhasil dibuat dan siap digunakan.`,
+      });
     } catch (error) {
-      console.error('Gagal membuat Link Hub:', error)
-      setLinkHubError(error.message)
-      toast.error(error.message)
+      console.error("Gagal membuat Link Hub:", error);
+      setLinkHubError(error.message);
+      toast.error(error.message);
     } finally {
-      setLinkHubLoading(false)
+      setLinkHubLoading(false);
     }
-  }
+  };
 
   // =====================================================
   // ADD LINK ITEM KE LINK HUB — DENGAN CEK KONTEN SENSITIF
   // =====================================================
 
   const addLinkItem = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem("token");
 
     if (!token) {
-      setLinkItemError('Token login tidak ditemukan.')
-      return
+      setLinkItemError("Token login tidak ditemukan.");
+      return;
     }
 
     if (!selectedHub) {
-      setLinkItemError('Link Hub belum dipilih.')
-      return
+      setLinkItemError("Link Hub belum dipilih.");
+      return;
     }
 
     if (!linkItemForm.title) {
-      setLinkItemError('Judul link wajib diisi.')
-      return
+      setLinkItemError("Judul link wajib diisi.");
+      return;
     }
 
     if (!linkItemForm.url) {
-      setLinkItemError('URL wajib diisi.')
-      return
+      setLinkItemError("URL wajib diisi.");
+      return;
     }
 
     try {
-      setLinkItemLoading(true)
-      setLinkItemError('')
+      setLinkItemLoading(true);
+      setLinkItemError("");
 
       const response = await fetch(
         `${API_URL}/api/link-hubs/${selectedHub.id}/items`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
+            "Content-Type": "application/json",
+            Accept: "application/json",
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             title: linkItemForm.title,
             url: linkItemForm.url,
           }),
-        }
-      )
+        },
+      );
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
         // ✨ KONTEN SENSITIF — Pakai MODAL
-        if (result.error_code === 'blocked_content') {
+        if (result.error_code === "blocked_content") {
           setNotifModal({
             isOpen: true,
-            variant: 'error',
-            emoji: '🚫',
-            title: 'Link Diblokir',
+            variant: "error",
+            emoji: "🚫",
+            title: "Link Diblokir",
             message: result.message,
-          })
-          return
+          });
+          return;
         }
 
         const validationMessage = result.errors
-          ? Object.values(result.errors).flat().join(' ')
-          : ''
+          ? Object.values(result.errors).flat().join(" ")
+          : "";
 
         throw new Error(
-          validationMessage || result.message || 'Gagal menambahkan link.'
-        )
+          validationMessage || result.message || "Gagal menambahkan link.",
+        );
       }
 
-      const newItem = result.data
+      const newItem = result.data;
 
       setSelectedHub((prev) => {
-        if (!prev) return prev
+        if (!prev) return prev;
         return {
           ...prev,
           items: [...(prev.items || []), newItem],
-        }
-      })
+        };
+      });
 
       setLinkHubs((prev) =>
         prev.map((hub) =>
@@ -1405,54 +1445,54 @@ function App() {
                 ...hub,
                 items: [...(hub.items || []), newItem],
               }
-            : hub
-        )
-      )
+            : hub,
+        ),
+      );
 
-      setLinkItemForm({ title: '', url: '' })
-      setLinkItemError('')
+      setLinkItemForm({ title: "", url: "" });
+      setLinkItemError("");
 
-      toast.success('Link berhasil ditambahkan.')
+      toast.success("Link berhasil ditambahkan.");
     } catch (error) {
-      console.error('Gagal menambahkan link:', error)
-      setLinkItemError(error.message)
-      toast.error(error.message)
+      console.error("Gagal menambahkan link:", error);
+      setLinkItemError(error.message);
+      toast.error(error.message);
     } finally {
-      setLinkItemLoading(false)
+      setLinkItemLoading(false);
     }
-  }
+  };
 
   // =====================================================
   // TOGGLE STATUS LINK ITEM
   // =====================================================
 
   const toggleLinkItemStatus = async (hubId, itemId) => {
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem("token");
 
     if (!token) {
-      toast.warning('Silakan login terlebih dahulu.')
-      return
+      toast.warning("Silakan login terlebih dahulu.");
+      return;
     }
 
     try {
       const response = await fetch(
         `${API_URL}/api/link-hubs/${hubId}/items/${itemId}/status`,
         {
-          method: 'PATCH',
+          method: "PATCH",
           headers: {
-            Accept: 'application/json',
+            Accept: "application/json",
             Authorization: `Bearer ${token}`,
           },
-        }
-      )
+        },
+      );
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || 'Gagal mengubah status link.')
+        throw new Error(result.message || "Gagal mengubah status link.");
       }
 
-      const updatedItem = result.data
+      const updatedItem = result.data;
 
       setLinkHubs((prev) =>
         prev.map((hub) =>
@@ -1460,91 +1500,91 @@ function App() {
             ? {
                 ...hub,
                 items: (hub.items || []).map((item) =>
-                  item.id === itemId ? updatedItem : item
+                  item.id === itemId ? updatedItem : item,
                 ),
               }
-            : hub
-        )
-      )
+            : hub,
+        ),
+      );
 
       setSelectedHub((prev) =>
         prev
           ? {
               ...prev,
               items: (prev.items || []).map((item) =>
-                item.id === itemId ? updatedItem : item
+                item.id === itemId ? updatedItem : item,
               ),
             }
-          : prev
-      )
+          : prev,
+      );
 
       toast.success(
         updatedItem.status
-          ? 'Link berhasil diaktifkan.'
-          : 'Link berhasil dinonaktifkan.'
-      )
+          ? "Link berhasil diaktifkan."
+          : "Link berhasil dinonaktifkan.",
+      );
     } catch (error) {
-      console.error('Gagal mengubah status link:', error)
-      toast.error(error.message || 'Gagal mengubah status link.')
+      console.error("Gagal mengubah status link:", error);
+      toast.error(error.message || "Gagal mengubah status link.");
     }
-  }
+  };
 
   // =====================================================
   // EDIT LINK ITEM — DENGAN CEK KONTEN SENSITIF
   // =====================================================
 
   const editLinkItem = async (e, hubId, itemId) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem("token");
 
     if (!token) {
-      toast.warning('Silakan login terlebih dahulu.')
-      return
+      toast.warning("Silakan login terlebih dahulu.");
+      return;
     }
 
     try {
       const response = await fetch(
         `${API_URL}/api/link-hubs/${hubId}/items/${itemId}`,
         {
-          method: 'PUT',
+          method: "PUT",
           headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
+            "Content-Type": "application/json",
+            Accept: "application/json",
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             title: linkItemForm.title,
             url: linkItemForm.url,
           }),
-        }
-      )
+        },
+      );
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
         // ✨ KONTEN SENSITIF — Pakai MODAL
-        if (result.error_code === 'blocked_content') {
+        if (result.error_code === "blocked_content") {
           setNotifModal({
             isOpen: true,
-            variant: 'error',
-            emoji: '🚫',
-            title: 'Link Diblokir',
+            variant: "error",
+            emoji: "🚫",
+            title: "Link Diblokir",
             message: result.message,
-          })
-          return
+          });
+          return;
         }
 
         const validationMessage = result.errors
-          ? Object.values(result.errors).flat().join(' ')
-          : ''
+          ? Object.values(result.errors).flat().join(" ")
+          : "";
 
         throw new Error(
-          validationMessage || result.message || 'Gagal memperbarui link.'
-        )
+          validationMessage || result.message || "Gagal memperbarui link.",
+        );
       }
 
-      const updatedItem = result.data
+      const updatedItem = result.data;
 
       setLinkHubs((prev) =>
         prev.map((hub) =>
@@ -1552,71 +1592,71 @@ function App() {
             ? {
                 ...hub,
                 items: (hub.items || []).map((item) =>
-                  item.id === itemId ? updatedItem : item
+                  item.id === itemId ? updatedItem : item,
                 ),
               }
-            : hub
-        )
-      )
+            : hub,
+        ),
+      );
 
       setSelectedHub((prev) =>
         prev
           ? {
               ...prev,
               items: (prev.items || []).map((item) =>
-                item.id === itemId ? updatedItem : item
+                item.id === itemId ? updatedItem : item,
               ),
             }
-          : prev
-      )
+          : prev,
+      );
 
-      setEditingLinkItem(null)
-      setLinkItemForm({ title: '', url: '' })
+      setEditingLinkItem(null);
+      setLinkItemForm({ title: "", url: "" });
 
-      toast.success('Link berhasil diperbarui.')
+      toast.success("Link berhasil diperbarui.");
     } catch (error) {
-      console.error('Gagal memperbarui link:', error)
-      toast.error(error.message || 'Gagal memperbarui link.')
+      console.error("Gagal memperbarui link:", error);
+      toast.error(error.message || "Gagal memperbarui link.");
     }
-  }
+  };
 
   const moveLinkItem = async (hubId, itemId, direction) => {
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem("token");
 
     if (!token) {
-      toast.warning('Silakan login terlebih dahulu.')
-      return
+      toast.warning("Silakan login terlebih dahulu.");
+      return;
     }
 
     try {
-      const hub = linkHubs.find((hub) => hub.id === hubId)
+      const hub = linkHubs.find((hub) => hub.id === hubId);
 
-      if (!hub || !hub.items) return
+      if (!hub || !hub.items) return;
 
-      const items = [...hub.items].sort((a, b) => a.sort_order - b.sort_order)
+      const items = [...hub.items].sort((a, b) => a.sort_order - b.sort_order);
 
-      const currentIndex = items.findIndex((item) => item.id === itemId)
+      const currentIndex = items.findIndex((item) => item.id === itemId);
 
-      if (currentIndex === -1) return
+      if (currentIndex === -1) return;
 
       const targetIndex =
-        direction === 'up' ? currentIndex - 1 : currentIndex + 1
+        direction === "up" ? currentIndex - 1 : currentIndex + 1;
 
-      if (targetIndex < 0 || targetIndex >= items.length) return
+      if (targetIndex < 0 || targetIndex >= items.length) return;
 
-      const currentItem = items[currentIndex]
-      const targetItem = items[targetIndex]
+      const currentItem = items[currentIndex];
+      const targetItem = items[targetIndex];
 
-      const currentOrder = currentItem.sort_order
-      const targetOrder = targetItem.sort_order
+      const currentOrder = currentItem.sort_order;
+      const targetOrder = targetItem.sort_order;
 
       const response1 = await fetch(
         `${API_URL}/api/link-hubs/${hubId}/items/${currentItem.id}`,
         {
-          method: 'PUT',
+          method: "PUT",
           headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
+            "Content-Type": "application/json",
+            Accept: "application/json",
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
@@ -1624,16 +1664,16 @@ function App() {
             url: currentItem.url,
             sort_order: targetOrder,
           }),
-        }
-      )
+        },
+      );
 
       const response2 = await fetch(
         `${API_URL}/api/link-hubs/${hubId}/items/${targetItem.id}`,
         {
-          method: 'PUT',
+          method: "PUT",
           headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
+            "Content-Type": "application/json",
+            Accept: "application/json",
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
@@ -1641,80 +1681,80 @@ function App() {
             url: targetItem.url,
             sort_order: currentOrder,
           }),
-        }
-      )
+        },
+      );
 
-      const result1 = await response1.json()
-      const result2 = await response2.json()
+      const result1 = await response1.json();
+      const result2 = await response2.json();
 
       if (!response1.ok || !response2.ok) {
         throw new Error(
-          result1.message || result2.message || 'Gagal mengubah urutan link.'
-        )
+          result1.message || result2.message || "Gagal mengubah urutan link.",
+        );
       }
 
-      const updatedCurrentItem = result1.data
-      const updatedTargetItem = result2.data
+      const updatedCurrentItem = result1.data;
+      const updatedTargetItem = result2.data;
 
       const newItems = items.map((item) => {
-        if (item.id === updatedCurrentItem.id) return updatedCurrentItem
-        if (item.id === updatedTargetItem.id) return updatedTargetItem
-        return item
-      })
+        if (item.id === updatedCurrentItem.id) return updatedCurrentItem;
+        if (item.id === updatedTargetItem.id) return updatedTargetItem;
+        return item;
+      });
 
       setLinkHubs((prev) =>
         prev.map((hub) =>
-          hub.id === hubId ? { ...hub, items: newItems } : hub
-        )
-      )
+          hub.id === hubId ? { ...hub, items: newItems } : hub,
+        ),
+      );
 
       setSelectedHub((prev) =>
-        prev && prev.id === hubId ? { ...prev, items: newItems } : prev
-      )
+        prev && prev.id === hubId ? { ...prev, items: newItems } : prev,
+      );
     } catch (error) {
-      console.error('Gagal mengubah urutan link:', error)
-      toast.error(error.message || 'Gagal mengubah urutan link.')
+      console.error("Gagal mengubah urutan link:", error);
+      toast.error(error.message || "Gagal mengubah urutan link.");
     }
-  }
+  };
 
   // =====================================================
   // DELETE LINK ITEM
   // =====================================================
 
   const deleteLinkItem = async (hubId, itemId) => {
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem("token");
 
     if (!token) {
-      toast.warning('Silakan login terlebih dahulu.')
-      return
+      toast.warning("Silakan login terlebih dahulu.");
+      return;
     }
 
     const yakin = await confirm({
-      title: 'Hapus Link',
-      message: 'Apakah Anda yakin ingin menghapus link ini?',
-      confirmText: 'Ya, Hapus',
-      cancelText: 'Batal',
-      type: 'danger',
-    })
+      title: "Hapus Link",
+      message: "Apakah Anda yakin ingin menghapus link ini?",
+      confirmText: "Ya, Hapus",
+      cancelText: "Batal",
+      type: "danger",
+    });
 
-    if (!yakin) return
+    if (!yakin) return;
 
     try {
       const response = await fetch(
         `${API_URL}/api/link-hubs/${hubId}/items/${itemId}`,
         {
-          method: 'DELETE',
+          method: "DELETE",
           headers: {
-            Accept: 'application/json',
+            Accept: "application/json",
             Authorization: `Bearer ${token}`,
           },
-        }
-      )
+        },
+      );
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || 'Gagal menghapus link.')
+        throw new Error(result.message || "Gagal menghapus link.");
       }
 
       setLinkHubs((prev) =>
@@ -1724,9 +1764,9 @@ function App() {
                 ...hub,
                 items: (hub.items || []).filter((item) => item.id !== itemId),
               }
-            : hub
-        )
-      )
+            : hub,
+        ),
+      );
 
       setSelectedHub((prev) =>
         prev
@@ -1734,56 +1774,56 @@ function App() {
               ...prev,
               items: (prev.items || []).filter((item) => item.id !== itemId),
             }
-          : prev
-      )
+          : prev,
+      );
 
-      setEditingLinkItem(null)
-      setLinkItemForm({ title: '', url: '' })
+      setEditingLinkItem(null);
+      setLinkItemForm({ title: "", url: "" });
 
-      toast.success('Link berhasil dihapus.')
+      toast.success("Link berhasil dihapus.");
     } catch (error) {
-      console.error('Gagal menghapus link:', error)
-      toast.error(error.message || 'Gagal menghapus link.')
+      console.error("Gagal menghapus link:", error);
+      toast.error(error.message || "Gagal menghapus link.");
     }
-  }
+  };
 
   // =====================================================
   // LOGOUT
   // =====================================================
 
   const handleLogout = async () => {
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem("token");
 
     try {
       if (token) {
         await fetch(`${API_URL}/api/logout`, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            Accept: 'application/json',
+            Accept: "application/json",
             Authorization: `Bearer ${token}`,
           },
-        })
+        });
       }
     } catch (error) {
-      console.error('Logout error:', error)
+      console.error("Logout error:", error);
     }
 
-    localStorage.removeItem('token')
+    localStorage.removeItem("token");
 
-    setUser(null)
-    setShortLinks([])
-    setAdminUsers([])
-    setUnitKerjas([])
-    setLinkHubs([])
-    setSelectedHub(null)
-    setShortUrl('')
-    setShowAddUserForm(false)
-    setShowEditUserForm(false)
-    setShowLinkHubForm(false)
-    setEditingUserId(null)
+    setUser(null);
+    setShortLinks([]);
+    setAdminUsers([]);
+    setUnitKerjas([]);
+    setLinkHubs([]);
+    setSelectedHub(null);
+    setShortUrl("");
+    setShowAddUserForm(false);
+    setShowEditUserForm(false);
+    setShowLinkHubForm(false);
+    setEditingUserId(null);
 
-    window.history.pushState({}, '', '/')
-  }
+    window.history.pushState({}, "", "/");
+  };
 
   // =====================================================
   // UBAH PASSWORD
@@ -1791,43 +1831,43 @@ function App() {
 
   const handleChangePassword = async () => {
     if (!currentPassword) {
-      toast.warning('Password lama wajib diisi.')
-      return
+      toast.warning("Password lama wajib diisi.");
+      return;
     }
 
     if (!newPassword) {
-      toast.warning('Password baru wajib diisi.')
-      return
+      toast.warning("Password baru wajib diisi.");
+      return;
     }
 
     if (newPassword.length < 8) {
-      toast.warning('Password baru minimal 8 karakter.')
-      return
+      toast.warning("Password baru minimal 8 karakter.");
+      return;
     }
 
     if (!confirmNewPassword) {
-      toast.warning('Konfirmasi password wajib diisi.')
-      return
+      toast.warning("Konfirmasi password wajib diisi.");
+      return;
     }
 
     if (newPassword !== confirmNewPassword) {
-      toast.warning('Konfirmasi password tidak sama.')
-      return
+      toast.warning("Konfirmasi password tidak sama.");
+      return;
     }
 
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem("token");
 
       if (!token) {
-        toast.error('Sesi login tidak ditemukan.')
-        return
+        toast.error("Sesi login tidak ditemukan.");
+        return;
       }
 
       const response = await fetch(`${API_URL}/api/profile/password`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
+          "Content-Type": "application/json",
+          Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
@@ -1835,82 +1875,82 @@ function App() {
           password: newPassword,
           password_confirmation: confirmNewPassword,
         }),
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || 'Gagal mengubah password.')
+        throw new Error(result.message || "Gagal mengubah password.");
       }
 
-      toast.success('Password berhasil diubah.')
+      toast.success("Password berhasil diubah.");
 
-      setCurrentPassword('')
-      setNewPassword('')
-      setConfirmNewPassword('')
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmNewPassword("");
     } catch (error) {
-      toast.error(error.message)
+      toast.error(error.message);
     }
-  }
+  };
 
   const handleUpdateProfile = async () => {
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem("token");
 
       const response = await fetch(`${API_URL}/api/profile`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
+          "Content-Type": "application/json",
+          Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           name: editName,
           email: editEmail,
         }),
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
         if (result.errors?.email) {
-          throw new Error('Email tersebut sudah digunakan.')
+          throw new Error("Email tersebut sudah digunakan.");
         }
-        throw new Error(result.message || 'Gagal memperbarui profil.')
+        throw new Error(result.message || "Gagal memperbarui profil.");
       }
 
-      setUser(result.user)
-      setEditingProfile(false)
-      toast.success('Profil berhasil diperbarui.')
+      setUser(result.user);
+      setEditingProfile(false);
+      toast.success("Profil berhasil diperbarui.");
     } catch (error) {
-      toast.error(error.message)
+      toast.error(error.message);
     }
-  }
+  };
 
   // =====================================================
   // TAMBAH USER
   // =====================================================
 
   const handleAddUser = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    setUserFormError('')
-    setUserFormLoading(true)
+    setUserFormError("");
+    setUserFormLoading(true);
 
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem("token");
 
     if (!token) {
-      setUserFormError('Sesi login tidak ditemukan.')
-      setUserFormLoading(false)
-      return
+      setUserFormError("Sesi login tidak ditemukan.");
+      setUserFormLoading(false);
+      return;
     }
 
     try {
       const response = await fetch(`${API_URL}/api/admin/users`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
+          "Content-Type": "application/json",
+          Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
@@ -1918,99 +1958,99 @@ function App() {
           email: userForm.email,
           password: userForm.password,
           user_type: userForm.user_type,
-          role: (userForm.role || 'user').toLowerCase(),
+          role: (userForm.role || "user").toLowerCase(),
           unit_kerja_id: userForm.unit_kerja_id
             ? Number(userForm.unit_kerja_id)
             : null,
         }),
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
         if (response.status === 422 && result.errors) {
-          const firstError = Object.values(result.errors)[0]
+          const firstError = Object.values(result.errors)[0];
 
           if (Array.isArray(firstError)) {
-            throw new Error(firstError[0])
+            throw new Error(firstError[0]);
           }
 
-          throw new Error(firstError)
+          throw new Error(firstError);
         }
 
-        throw new Error(result.message || 'Gagal menambahkan user.')
+        throw new Error(result.message || "Gagal menambahkan user.");
       }
 
-      setAdminUsers((prevUsers) => [result.data, ...prevUsers])
+      setAdminUsers((prevUsers) => [result.data, ...prevUsers]);
 
       setUserForm({
-        name: '',
-        email: '',
-        password: '',
-        user_type: 'UMUM',
-        role: 'user',
-        unit_kerja_id: '',
-      })
+        name: "",
+        email: "",
+        password: "",
+        user_type: "UMUM",
+        role: "user",
+        unit_kerja_id: "",
+      });
 
-      setShowAddUserForm(false)
-      toast.success('User berhasil ditambahkan.')
+      setShowAddUserForm(false);
+      toast.success("User berhasil ditambahkan.");
     } catch (error) {
-      setUserFormError(error.message)
-      toast.error(error.message)
+      setUserFormError(error.message);
+      toast.error(error.message);
     } finally {
-      setUserFormLoading(false)
+      setUserFormLoading(false);
     }
-  }
+  };
 
   // =====================================================
   // EDIT USER
   // =====================================================
 
   const handleEditUser = (adminUser) => {
-    setShowAddUserForm(false)
-    setUserFormError('')
+    setShowAddUserForm(false);
+    setUserFormError("");
 
-    setEditingUserId(adminUser.id)
+    setEditingUserId(adminUser.id);
 
     setEditUserForm({
-      name: adminUser.name || '',
-      email: adminUser.email || '',
-      password: '',
-      user_type: adminUser.user_type || 'UMUM',
-      role: adminUser.role || 'user',
-      unit_kerja_id: adminUser.unit_kerja_id || '',
-    })
+      name: adminUser.name || "",
+      email: adminUser.email || "",
+      password: "",
+      user_type: adminUser.user_type || "UMUM",
+      role: adminUser.role || "user",
+      unit_kerja_id: adminUser.unit_kerja_id || "",
+    });
 
-    setEditUserError('')
-    setShowEditUserForm(true)
-  }
+    setEditUserError("");
+    setShowEditUserForm(true);
+  };
 
   // =====================================================
   // UPDATE USER
   // =====================================================
 
   const handleUpdateUser = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    setEditUserError('')
-    setEditUserLoading(true)
+    setEditUserError("");
+    setEditUserLoading(true);
 
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem("token");
 
     if (!token) {
-      setEditUserError('Sesi login tidak ditemukan.')
-      setEditUserLoading(false)
-      return
+      setEditUserError("Sesi login tidak ditemukan.");
+      setEditUserLoading(false);
+      return;
     }
 
     try {
       const response = await fetch(
         `${API_URL}/api/admin/users/${editingUserId}`,
         {
-          method: 'PUT',
+          method: "PUT",
           headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
+            "Content-Type": "application/json",
+            Accept: "application/json",
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
@@ -2018,56 +2058,56 @@ function App() {
             email: editUserForm.email,
             password: editUserForm.password || null,
             user_type: editUserForm.user_type,
-            role: (editUserForm.role || 'user').toLowerCase(),
+            role: (editUserForm.role || "user").toLowerCase(),
             unit_kerja_id: editUserForm.unit_kerja_id
               ? Number(editUserForm.unit_kerja_id)
               : null,
           }),
-        }
-      )
+        },
+      );
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
         if (response.status === 422 && result.errors) {
-          const firstError = Object.values(result.errors)[0]
+          const firstError = Object.values(result.errors)[0];
 
           if (Array.isArray(firstError)) {
-            throw new Error(firstError[0])
+            throw new Error(firstError[0]);
           }
 
-          throw new Error(firstError)
+          throw new Error(firstError);
         }
 
-        throw new Error(result.message || 'Gagal memperbarui user.')
+        throw new Error(result.message || "Gagal memperbarui user.");
       }
 
       setAdminUsers((prevUsers) =>
         prevUsers.map((adminUser) =>
-          adminUser.id === editingUserId ? result.data : adminUser
-        )
-      )
+          adminUser.id === editingUserId ? result.data : adminUser,
+        ),
+      );
 
       setEditUserForm({
-        name: '',
-        email: '',
-        password: '',
-        user_type: 'UMUM',
-        role: 'user',
-        unit_kerja_id: '',
-      })
+        name: "",
+        email: "",
+        password: "",
+        user_type: "UMUM",
+        role: "user",
+        unit_kerja_id: "",
+      });
 
-      setShowEditUserForm(false)
-      setEditingUserId(null)
+      setShowEditUserForm(false);
+      setEditingUserId(null);
 
-      toast.success('User berhasil diperbarui.')
+      toast.success("User berhasil diperbarui.");
     } catch (error) {
-      setEditUserError(error.message)
-      toast.error(error.message)
+      setEditUserError(error.message);
+      toast.error(error.message);
     } finally {
-      setEditUserLoading(false)
+      setEditUserLoading(false);
     }
-  }
+  };
 
   // =====================================================
   // HAPUS USER
@@ -2075,48 +2115,48 @@ function App() {
 
   const handleDeleteUser = async (adminUser) => {
     const yakin = await confirm({
-      title: 'Hapus User',
+      title: "Hapus User",
       message: `Yakin ingin menghapus user "${adminUser.name}"?\n\nAksi ini tidak bisa dibatalkan.`,
-      confirmText: 'Ya, Hapus',
-      cancelText: 'Batal',
-      type: 'danger',
-    })
+      confirmText: "Ya, Hapus",
+      cancelText: "Batal",
+      type: "danger",
+    });
 
-    if (!yakin) return
+    if (!yakin) return;
 
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem("token");
 
     if (!token) {
-      toast.error('Sesi login tidak ditemukan.')
-      return
+      toast.error("Sesi login tidak ditemukan.");
+      return;
     }
 
     try {
       const response = await fetch(
         `${API_URL}/api/admin/users/${adminUser.id}`,
         {
-          method: 'DELETE',
+          method: "DELETE",
           headers: {
-            Accept: 'application/json',
+            Accept: "application/json",
             Authorization: `Bearer ${token}`,
           },
-        }
-      )
+        },
+      );
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || 'Gagal menghapus user.')
+        throw new Error(result.message || "Gagal menghapus user.");
       }
 
-      setAdminUsers((prev) => prev.filter((u) => u.id !== adminUser.id))
+      setAdminUsers((prev) => prev.filter((u) => u.id !== adminUser.id));
 
-      toast.success('User berhasil dihapus.')
+      toast.success("User berhasil dihapus.");
     } catch (error) {
-      console.error('DELETE USER ERROR:', error)
-      toast.error(error.message)
+      console.error("DELETE USER ERROR:", error);
+      toast.error(error.message);
     }
-  }
+  };
 
   // =====================================================
   // MEMBUAT SHORT URL — DENGAN CEK KONTEN SENSITIF
@@ -2124,25 +2164,25 @@ function App() {
 
   const shortenUrl = async (lockedUnitKerjaId = null) => {
     if (!url) {
-      toast.warning('Masukkan URL terlebih dahulu')
-      return
+      toast.warning("Masukkan URL terlebih dahulu");
+      return;
     }
 
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem("token");
 
     if (!token) {
-      toast.warning('Silakan login terlebih dahulu')
-      return
+      toast.warning("Silakan login terlebih dahulu");
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
 
     try {
       const response = await fetch(`${API_URL}/api/short-links`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
+          "Content-Type": "application/json",
+          Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
@@ -2152,77 +2192,79 @@ function App() {
           title: title || null,
           locked_unit_kerja_id: lockedUnitKerjaId || null,
         }),
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
         // ✨ KONTEN SENSITIF — Pakai MODAL
-        if (result.error_code === 'blocked_content') {
+        if (result.error_code === "blocked_content") {
           setNotifModal({
             isOpen: true,
-            variant: 'error',
-            emoji: '🚫',
-            title: 'Link Diblokir',
+            variant: "error",
+            emoji: "🚫",
+            title: "Link Diblokir",
             message: result.message,
-          })
-          return
+          });
+          return;
         }
 
         // ✨ ERROR BIASA (Termasuk Alias Duplikat) — Pakai TOAST
-        const errorMessage = result.message || (result.errors ? Object.values(result.errors).flat().join(' ') : '')
-        throw new Error(errorMessage || 'Gagal membuat short URL')
+        const errorMessage =
+          result.message ||
+          (result.errors ? Object.values(result.errors).flat().join(" ") : "");
+        throw new Error(errorMessage || "Gagal membuat short URL");
       }
 
-      setShortUrl(`${API_URL}/${result.data.short_code}`)
-      setShortLinks((prevLinks) => [result.data, ...prevLinks])
-      setUrl('')
-      setAlias('')
-      setTitle('')
+      setShortUrl(`${API_URL}/${result.data.short_code}`);
+      setShortLinks((prevLinks) => [result.data, ...prevLinks]);
+      setUrl("");
+      setAlias("");
+      setTitle("");
 
-      toast.success('Short link berhasil dibuat.')
+      toast.success("Short link berhasil dibuat.");
     } catch (error) {
-      toast.error(error.message)
+      toast.error(error.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // =====================================================
   // MULAI EDIT SHORT LINK
   // =====================================================
 
   const startEditShortLink = (link) => {
-    setEditingShortLink(link)
+    setEditingShortLink(link);
 
     setEditShortLinkForm({
-      original_url: link.original_url || '',
-      short_code: link.short_code || '',
-      title: link.title || '',
-      locked_unit_kerja_id: link.locked_unit_kerja_id || '',
-    })
+      original_url: link.original_url || "",
+      short_code: link.short_code || "",
+      title: link.title || "",
+      locked_unit_kerja_id: link.locked_unit_kerja_id || "",
+    });
 
-    setEditShortLinkError('')
-  }
+    setEditShortLinkError("");
+  };
 
   // =====================================================
   // SIMPAN EDIT SHORT LINK — DENGAN CEK KONTEN SENSITIF
   // =====================================================
 
   const handleEditShortLink = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (!editingShortLink) return
+    if (!editingShortLink) return;
 
-    setEditShortLinkError('')
-    setEditShortLinkLoading(true)
+    setEditShortLinkError("");
+    setEditShortLinkLoading(true);
 
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem("token");
 
     if (!token) {
-      setEditShortLinkError('Sesi login tidak ditemukan.')
-      setEditShortLinkLoading(false)
-      return
+      setEditShortLinkError("Sesi login tidak ditemukan.");
+      setEditShortLinkLoading(false);
+      return;
     }
 
     try {
@@ -2231,153 +2273,156 @@ function App() {
           ? `${API_URL}/api/admin/short-links/${editingShortLink.id}`
           : `${API_URL}/api/short-links/${editingShortLink.id}`,
         {
-          method: 'PUT',
+          method: "PUT",
           headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
+            "Content-Type": "application/json",
+            Accept: "application/json",
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             original_url: editShortLinkForm.original_url,
             short_code: editShortLinkForm.short_code,
             title: editShortLinkForm.title || null,
-            locked_unit_kerja_id: editShortLinkForm.locked_unit_kerja_id || null,
+            locked_unit_kerja_id:
+              editShortLinkForm.locked_unit_kerja_id || null,
           }),
-        }
-      )
+        },
+      );
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
         // ✨ KONTEN SENSITIF — Pakai MODAL
-        if (result.error_code === 'blocked_content') {
+        if (result.error_code === "blocked_content") {
           setNotifModal({
             isOpen: true,
-            variant: 'error',
-            emoji: '🚫',
-            title: 'Link Diblokir',
+            variant: "error",
+            emoji: "🚫",
+            title: "Link Diblokir",
             message: result.message,
-          })
-          return
+          });
+          return;
         }
 
         // ✨ ERROR BIASA (Termasuk Alias Duplikat) — Pakai TOAST
         const validationMessage = result.errors
-          ? Object.values(result.errors).flat().join(' ')
-          : ''
+          ? Object.values(result.errors).flat().join(" ")
+          : "";
 
         throw new Error(
-          validationMessage || result.message || 'Gagal memperbarui short link.'
-        )
+          validationMessage ||
+            result.message ||
+            "Gagal memperbarui short link.",
+        );
       }
 
       setShortLinks((prevLinks) =>
         prevLinks.map((link) =>
-          link.id === editingShortLink.id ? result.data : link
-        )
-      )
+          link.id === editingShortLink.id ? result.data : link,
+        ),
+      );
 
-      setShortUrl(`${API_URL}/${result.data.short_code}`)
-      setEditingShortLink(null)
+      setShortUrl(`${API_URL}/${result.data.short_code}`);
+      setEditingShortLink(null);
 
       setEditShortLinkForm({
-        original_url: '',
-        short_code: '',
-        title: '',
-      })
+        original_url: "",
+        short_code: "",
+        title: "",
+      });
 
-      toast.success('Short link berhasil diperbarui.')
+      toast.success("Short link berhasil diperbarui.");
     } catch (error) {
-      setEditShortLinkError(error.message)
-      toast.error(error.message)
+      setEditShortLinkError(error.message);
+      toast.error(error.message);
     } finally {
-      setEditShortLinkLoading(false)
+      setEditShortLinkLoading(false);
     }
-  }
+  };
 
   // =====================================================
   // BATAL EDIT SHORT LINK
   // =====================================================
 
   const cancelEditShortLink = () => {
-    setEditingShortLink(null)
-    setEditShortLinkError('')
+    setEditingShortLink(null);
+    setEditShortLinkError("");
 
     setEditShortLinkForm({
-      original_url: '',
-      short_code: '',
-      title: '',
-      locked_unit_kerja_id: '',
-    })
-  }
+      original_url: "",
+      short_code: "",
+      title: "",
+      locked_unit_kerja_id: "",
+    });
+  };
 
   // =====================================================
   // COPY SHORT URL
   // =====================================================
 
   const copyShortUrl = () => {
-    if (!shortUrl) return
+    if (!shortUrl) return;
 
-    navigator.clipboard.writeText(shortUrl)
-    toast.success('Short URL berhasil disalin')
-  }
+    navigator.clipboard.writeText(shortUrl);
+    toast.success("Short URL berhasil disalin");
+  };
 
   // =====================================================
   // DOWNLOAD QR
   // =====================================================
 
   const downloadQR = (id) => {
-    const canvas = document.querySelector(`#qr-${id}`)
+    const canvas = document.querySelector(`#qr-${id}`);
 
-    if (!canvas) return
+    if (!canvas) return;
 
-    const padding = 20
-    const border = 3
+    const padding = 20;
+    const border = 3;
 
-    const newCanvas = document.createElement('canvas')
-    newCanvas.width = canvas.width + (padding + border) * 2
-    newCanvas.height = canvas.height + (padding + border) * 2
+    const newCanvas = document.createElement("canvas");
+    newCanvas.width = canvas.width + (padding + border) * 2;
+    newCanvas.height = canvas.height + (padding + border) * 2;
 
-    const ctx = newCanvas.getContext('2d')
+    const ctx = newCanvas.getContext("2d");
 
-    ctx.imageSmoothingEnabled = false
+    ctx.imageSmoothingEnabled = false;
 
-    ctx.fillStyle = '#ffffff'
-    ctx.fillRect(0, 0, newCanvas.width, newCanvas.height)
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, newCanvas.width, newCanvas.height);
 
-    ctx.strokeStyle = '#ffffff'
-    ctx.lineWidth = border
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = border;
     ctx.strokeRect(
       border / 2,
       border / 2,
       newCanvas.width - border,
-      newCanvas.height - border
-    )
+      newCanvas.height - border,
+    );
 
     ctx.drawImage(
       canvas,
       padding + border,
       padding + border,
       canvas.width,
-      canvas.height
-    )
+      canvas.height,
+    );
 
-    const link = document.createElement('a')
-    link.download = `QR-Code-${id}.png`
-    link.href = newCanvas.toDataURL('image/png', 1.0)
-    link.click()
-  }
+    const link = document.createElement("a");
+    link.download = `QR-Code-${id}.png`;
+    link.href = newCanvas.toDataURL("image/png", 1.0);
+    link.click();
+  };
 
   // =====================================================
   // AKTIF / NONAKTIF SHORT LINK
   // =====================================================
 
   const handleToggleShortLink = async (id) => {
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem("token");
 
     if (!token) {
-      toast.error('Sesi login tidak ditemukan.')
-      return
+      toast.error("Sesi login tidak ditemukan.");
+      return;
     }
 
     try {
@@ -2386,29 +2431,29 @@ function App() {
           ? `${API_URL}/api/admin/short-links/${id}/status`
           : `${API_URL}/api/short-links/${id}/status`,
         {
-          method: 'PATCH',
+          method: "PATCH",
           headers: {
-            Accept: 'application/json',
+            Accept: "application/json",
             Authorization: `Bearer ${token}`,
           },
-        }
-      )
+        },
+      );
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || 'Gagal mengubah status short link.')
+        throw new Error(result.message || "Gagal mengubah status short link.");
       }
 
       setShortLinks((prevLinks) =>
-        prevLinks.map((link) => (link.id === id ? result.data : link))
-      )
+        prevLinks.map((link) => (link.id === id ? result.data : link)),
+      );
 
-      toast.success(result.message)
+      toast.success(result.message);
     } catch (error) {
-      toast.error(error.message)
+      toast.error(error.message);
     }
-  }
+  };
 
   // =====================================================
   // HAPUS SHORT LINK
@@ -2416,20 +2461,20 @@ function App() {
 
   const handleDeleteShortLink = async (id) => {
     const confirmDelete = await confirm({
-      title: 'Hapus Short Link',
-      message: 'Yakin ingin menghapus short link ini?',
-      confirmText: 'Ya, Hapus',
-      cancelText: 'Batal',
-      type: 'danger',
-    })
+      title: "Hapus Short Link",
+      message: "Yakin ingin menghapus short link ini?",
+      confirmText: "Ya, Hapus",
+      cancelText: "Batal",
+      type: "danger",
+    });
 
-    if (!confirmDelete) return
+    if (!confirmDelete) return;
 
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem("token");
 
     if (!token) {
-      toast.error('Sesi login tidak ditemukan.')
-      return
+      toast.error("Sesi login tidak ditemukan.");
+      return;
     }
 
     try {
@@ -2438,41 +2483,41 @@ function App() {
           ? `${API_URL}/api/admin/short-links/${id}`
           : `${API_URL}/api/short-links/${id}`,
         {
-          method: 'DELETE',
+          method: "DELETE",
           headers: {
             Authorization: `Bearer ${token}`,
-            Accept: 'application/json',
+            Accept: "application/json",
           },
-        }
-      )
+        },
+      );
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || 'Gagal menghapus short link.')
+        throw new Error(result.message || "Gagal menghapus short link.");
       }
 
-      setShortLinks((prevLinks) => prevLinks.filter((link) => link.id !== id))
+      setShortLinks((prevLinks) => prevLinks.filter((link) => link.id !== id));
 
       if (
         shortUrl &&
         shortLinks.some(
           (link) =>
-            link.id === id && `${API_URL}/${link.short_code}` === shortUrl
+            link.id === id && `${API_URL}/${link.short_code}` === shortUrl,
         )
       ) {
-        setShortUrl('')
+        setShortUrl("");
       }
 
       if (editingShortLink && editingShortLink.id === id) {
-        cancelEditShortLink()
+        cancelEditShortLink();
       }
 
-      toast.success('Short link berhasil dihapus.')
+      toast.success("Short link berhasil dihapus.");
     } catch (error) {
-      toast.error(error.message)
+      toast.error(error.message);
     }
-  }
+  };
 
   // =====================================================
   // STATISTIK DASAR
@@ -2480,15 +2525,15 @@ function App() {
 
   const totalClicks = shortLinks.reduce(
     (total, link) => total + Number(link.click_count ?? 0),
-    0
-  )
+    0,
+  );
 
-  const activeLinks = shortLinks.filter((link) => link.status).length
+  const activeLinks = shortLinks.filter((link) => link.status).length;
 
   const filteredUsers = adminUsers.filter((adminUser) => {
-    const keyword = userSearch.toLowerCase().trim()
+    const keyword = userSearch.toLowerCase().trim();
 
-    if (!keyword) return true
+    if (!keyword) return true;
 
     return (
       adminUser.name?.toLowerCase().includes(keyword) ||
@@ -2496,8 +2541,8 @@ function App() {
       adminUser.user_type?.toLowerCase().includes(keyword) ||
       adminUser.role?.toLowerCase().includes(keyword) ||
       adminUser.unit_kerja?.nama_unit_kerja?.toLowerCase().includes(keyword)
-    )
-  })
+    );
+  });
 
   const renderPublicHub = () => {
     if (publicHubLoading) {
@@ -2508,33 +2553,34 @@ function App() {
             <p>Memuat Link Hub...</p>
           </div>
         </div>
-      )
+      );
     }
 
     if (publicHubError) {
-      if (publicHubErrorCode === 'login_required') {
+      if (publicHubErrorCode === "login_required") {
         return (
           <div className="pub">
             <div className="pub__error-card">
               <div className="pub__error-icon">🔐</div>
               <h1>Perlu Login</h1>
               <p>
-                Link Hub ini terkunci untuk <b>{publicHubLockedUnit || 'unit kerja tertentu'}</b>.
-                Silakan login terlebih dahulu dengan akun yang sesuai.
+                Link Hub ini terkunci untuk{" "}
+                <b>{publicHubLockedUnit || "unit kerja tertentu"}</b>. Silakan
+                login terlebih dahulu dengan akun yang sesuai.
               </p>
               <a
                 href="/"
                 className="pub__share-btn pub__share-btn--copy"
-                style={{ marginTop: 16, display: 'inline-flex' }}
+                style={{ marginTop: 16, display: "inline-flex" }}
               >
                 ← Ke Halaman Login
               </a>
             </div>
           </div>
-        )
+        );
       }
 
-      if (publicHubErrorCode === 'forbidden') {
+      if (publicHubErrorCode === "forbidden") {
         return (
           <div className="pub">
             <div className="pub__error-card">
@@ -2543,21 +2589,21 @@ function App() {
               <p>
                 Link Hub ini hanya dapat diakses oleh unit kerja:
                 <br />
-                <b>{publicHubLockedUnit || 'Tertentu'}</b>
+                <b>{publicHubLockedUnit || "Tertentu"}</b>
               </p>
-              <p style={{ fontSize: 13, color: '#94A3B8', marginTop: 8 }}>
+              <p style={{ fontSize: 13, color: "#94A3B8", marginTop: 8 }}>
                 Akun kamu tidak memiliki akses ke unit kerja tersebut.
               </p>
               <a
                 href="/"
                 className="pub__share-btn pub__share-btn--copy"
-                style={{ marginTop: 16, display: 'inline-flex' }}
+                style={{ marginTop: 16, display: "inline-flex" }}
               >
                 ← Ke Halaman Utama
               </a>
             </div>
           </div>
-        )
+        );
       }
 
       return (
@@ -2568,7 +2614,7 @@ function App() {
             <p>{publicHubError}</p>
           </div>
         </div>
-      )
+      );
     }
 
     if (!publicHub) {
@@ -2578,22 +2624,22 @@ function App() {
             <p>Link Hub tidak ditemukan.</p>
           </div>
         </div>
-      )
+      );
     }
 
     const activeItems = (publicHub.items || [])
       .filter((item) => item.status)
-      .sort((a, b) => a.sort_order - b.sort_order)
+      .sort((a, b) => a.sort_order - b.sort_order);
 
     const publicUrl =
-      typeof window !== 'undefined'
+      typeof window !== "undefined"
         ? `${window.location.origin}/${publicHub.short_code}`
-        : ''
+        : "";
 
     const handleCopyLink = () => {
-      navigator.clipboard.writeText(publicUrl)
-      toast.success('Link berhasil disalin!')
-    }
+      navigator.clipboard.writeText(publicUrl);
+      toast.success("Link berhasil disalin!");
+    };
 
     return (
       <div className="pub">
@@ -2608,7 +2654,7 @@ function App() {
               <div className="pub__logo-wrap">
                 {/* ✨ Pakai logo custom kalau ada, kalau tidak pakai logo Kominfo default */}
                 <img
-                  src={publicHub.logo_url || '/logo-kominfo-landak.png'}
+                  src={publicHub.logo_url || "/Lambang_Kabupaten_Landak.png"}
                   alt={`Logo ${publicHub.title}`}
                   className="pub__logo"
                 />
@@ -2665,7 +2711,7 @@ function App() {
                     <span className="pub__link-title">{item.title}</span>
                     {item.url && (
                       <span className="pub__link-url">
-                        {new URL(item.url).hostname.replace('www.', '')}
+                        {new URL(item.url).hostname.replace("www.", "")}
                       </span>
                     )}
                   </div>
@@ -2692,8 +2738,8 @@ function App() {
           </footer>
         </div>
       </div>
-    )
-  }
+    );
+  };
 
   // =====================================================
   // JIKA SHORT LINK TERKUNCI (dari ?locked_link=)
@@ -2708,21 +2754,21 @@ function App() {
           <p>
             Short link ini hanya dapat diakses oleh unit kerja:
             <br />
-            <b>{decodeURIComponent(lockedShortLinkUnit) || 'Tertentu'}</b>
+            <b>{decodeURIComponent(lockedShortLinkUnit) || "Tertentu"}</b>
           </p>
-          <p style={{ fontSize: 13, color: '#94A3B8', marginTop: 8 }}>
+          <p style={{ fontSize: 13, color: "#94A3B8", marginTop: 8 }}>
             Silakan login dengan akun yang sesuai untuk mengakses link ini.
           </p>
           <a
             href="/"
             className="pub__share-btn pub__share-btn--copy"
-            style={{ marginTop: 16, display: 'inline-flex' }}
+            style={{ marginTop: 16, display: "inline-flex" }}
           >
             ← Ke Halaman Login
           </a>
         </div>
       </div>
-    )
+    );
   }
 
   // =====================================================
@@ -2730,7 +2776,7 @@ function App() {
   // =====================================================
 
   if (isPublicHub) {
-    return renderPublicHub()
+    return renderPublicHub();
   }
 
   // =====================================================
@@ -2738,9 +2784,7 @@ function App() {
   // =====================================================
 
   if (checkingLogin) {
-    return (
-      <div style={{ padding: '40px' }}>Memeriksa login...</div>
-    )
+    return <div style={{ padding: "40px" }}>Memeriksa login...</div>;
   }
 
   // =====================================================
@@ -2748,7 +2792,7 @@ function App() {
   // =====================================================
 
   if (!user) {
-    return <Login onLogin={handleLogin} />
+    return <Login onLogin={handleLogin} />;
   }
 
   if (showUnitKerjaForm) {
@@ -2757,9 +2801,7 @@ function App() {
         <div className="unit-kerja-card">
           <h1>Lengkapi Profil</h1>
 
-          <p>
-            Sebelum menggunakan PENINK, silakan pilih unit kerja Anda.
-          </p>
+          <p>Sebelum menggunakan PENINK, silakan pilih unit kerja Anda.</p>
 
           <label>Unit Kerja</label>
 
@@ -2789,11 +2831,11 @@ function App() {
             onClick={handleSaveUnitKerja}
             disabled={unitKerjaSaving || !selectedUnitKerja}
           >
-            {unitKerjaSaving ? 'Menyimpan...' : 'Simpan Unit Kerja'}
+            {unitKerjaSaving ? "Menyimpan..." : "Simpan Unit Kerja"}
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   // =====================================================
@@ -2822,15 +2864,15 @@ function App() {
           isSuperAdmin={isSuperAdmin}
           onMenuClick={() => setSidebarOpen(true)}
           onProfileClick={() => {
-            navigateTo('dashboard', false)
-            setShowProfile(true)
+            navigateTo("dashboard", false);
+            setShowProfile(true);
           }}
         />
 
         <Suspense
           fallback={
-            <div style={{ padding: '60px 20px', textAlign: 'center' }}>
-              <div style={{ fontSize: '14px', color: '#64748b' }}>
+            <div style={{ padding: "60px 20px", textAlign: "center" }}>
+              <div style={{ fontSize: "14px", color: "#64748b" }}>
                 Memuat halaman...
               </div>
             </div>
@@ -2867,7 +2909,7 @@ function App() {
                 />
               ) : (
                 <>
-                  {activePage === 'dashboard' && (
+                  {activePage === "dashboard" && (
                     <Dashboard
                       API_URL={API_URL}
                       isAdmin={isAdmin}
@@ -2892,7 +2934,7 @@ function App() {
                     />
                   )}
 
-                  {activePage === 'shortlink' && (
+                  {activePage === "shortlink" && (
                     <ShortLink
                       API_URL={API_URL}
                       user={user}
@@ -2923,7 +2965,7 @@ function App() {
                     />
                   )}
 
-                  {activePage === 'linkhub' && (
+                  {activePage === "linkhub" && (
                     <LinkHub
                       API_URL={API_URL}
                       user={user}
@@ -2970,7 +3012,7 @@ function App() {
                     />
                   )}
 
-                  {activePage === 'statistik' && (
+                  {activePage === "statistik" && (
                     <Statistik
                       isAdmin={isAdmin}
                       adminStats={adminStats}
@@ -2987,7 +3029,7 @@ function App() {
                     />
                   )}
 
-                  {activePage === 'saran' && (
+                  {activePage === "saran" && (
                     <Feedback
                       user={user}
                       feedbackType={feedbackType}
@@ -3012,7 +3054,7 @@ function App() {
                     />
                   )}
 
-                  {activePage === 'feedback-list' && (
+                  {activePage === "feedback-list" && (
                     <Feedback
                       user={user}
                       feedbackType={feedbackType}
@@ -3036,7 +3078,7 @@ function App() {
                     />
                   )}
 
-                  {activePage === 'users' && (
+                  {activePage === "users" && (
                     <Users
                       user={user}
                       adminUsers={adminUsers}
@@ -3070,7 +3112,7 @@ function App() {
                     />
                   )}
 
-                  {activePage === 'locked-aliases' && (
+                  {activePage === "locked-aliases" && (
                     <LockedAlias
                       API_URL={API_URL}
                       user={user}
@@ -3078,8 +3120,8 @@ function App() {
                     />
                   )}
 
-                 {activePage === 'pengaturan' && (
-                  <Pengaturan user={user} API_URL={API_URL} />
+                  {activePage === "pengaturan" && (
+                    <Pengaturan user={user} API_URL={API_URL} />
                   )}
                 </>
               )}
@@ -3096,12 +3138,10 @@ function App() {
         title={notifModal.title}
         message={notifModal.message}
         buttonText="Mengerti"
-        onClose={() =>
-          setNotifModal((prev) => ({ ...prev, isOpen: false }))
-        }
+        onClose={() => setNotifModal((prev) => ({ ...prev, isOpen: false }))}
       />
     </>
-  )
+  );
 }
 
-export default App
+export default App;
