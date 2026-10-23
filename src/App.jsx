@@ -1,5 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 
+import { MapPinOff, ArrowLeft } from "lucide-react";
 import Login from "./Login";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
@@ -65,6 +66,10 @@ function App() {
   // =====================================================
 
   const [activePage, setActivePage] = useState("dashboard");
+
+  // State untuk Loading Redirect (Revisi No. 26)
+  const [redirectUrl, setRedirectUrl] = useState(null);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   // =====================================================
   // STATE — NOTIFICATION MODAL
@@ -210,17 +215,14 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // =====================================================
-  // ROLE CHECKS — SUPPORT admin_unit
+  // ROLE CHECKS — HANYA USER & SUPER ADMIN (Revisi No. 23)
   // =====================================================
   const currentRole = String(user?.role || "").toLowerCase();
 
   const isSuperAdmin = currentRole === "super_admin";
-  const isAdminUnit = currentRole === "admin_unit";
 
-  const isAdmin =
-    currentRole === "admin" ||
-    currentRole === "super_admin" ||
-    currentRole === "admin_unit";
+  // Karena admin_unit dan admin sudah dihapus, fungsi admin murni dipegang super_admin
+  const isAdmin = currentRole === "super_admin";
 
   const [showUnitKerjaForm, setShowUnitKerjaForm] = useState(false);
   const [selectedUnitKerja, setSelectedUnitKerja] = useState("");
@@ -341,7 +343,7 @@ function App() {
     const shortCode = path.replace(/^\/+/, "").replace(/\/$/, "");
 
     if (!shortCode) {
-      setPublicHubError("Link Hub tidak ditemukan.");
+      setPublicHubError("Alamat Tidak Ditemukan");
       setPublicHubLoading(false);
       return;
     }
@@ -354,16 +356,23 @@ function App() {
 
     fetch(`${API_URL}/api/public/link-hubs/${shortCode}`, { headers })
       .then(async (response) => {
-        const result = await response.json();
+        const contentType = response.headers.get("content-type");
+        let result = {};
+
+        if (contentType && contentType.includes("application/json")) {
+          result = await response.json();
+        }
 
         if (!response.ok) {
           if (result.error_code) {
             setPublicHubErrorCode(result.error_code);
             setPublicHubLockedUnit(result.locked_unit_kerja || "");
           }
-          throw new Error(
-            result.message || "Link Hub tidak ditemukan atau tidak aktif.",
-          );
+          throw new Error(result.message || "Alamat Tidak Ditemukan");
+        }
+
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("Alamat Tidak Ditemukan");
         }
 
         return result;
@@ -374,7 +383,7 @@ function App() {
       })
       .catch((error) => {
         console.error("Gagal mengambil Link Hub:", error);
-        setPublicHubError(error.message);
+        setPublicHubError("Alamat Tidak Ditemukan");
         setPublicHubLoading(false);
       });
   }, [isPublicHub]);
@@ -674,7 +683,7 @@ function App() {
     const role = String(loggedInUser.role || "").toLowerCase();
     const userType = String(loggedInUser.user_type || "").toUpperCase();
 
-    if (role === "admin" || role === "super_admin" || role === "admin_unit") {
+    if (role === "super_admin") {
       setShowUnitKerjaForm(false);
       return;
     }
@@ -816,12 +825,7 @@ function App() {
     const role = String(user.role || "").toLowerCase();
     const userType = String(user.user_type || "").toUpperCase();
 
-    if (
-      role === "admin" ||
-      role === "super_admin" ||
-      role === "admin_unit" ||
-      userType === "UMUM"
-    ) {
+    if (role === "super_admin" || userType === "UMUM") {
       setShowUnitKerjaForm(false);
       return;
     }
@@ -1047,7 +1051,6 @@ function App() {
         setShowHubQr(false);
       }
 
-      // ✨ Modal card notifikasi
       setNotifModal({
         isOpen: true,
         variant: "success",
@@ -1078,7 +1081,6 @@ function App() {
       locked_unit_kerja_id: hub.locked_unit_kerja_id || "",
     });
 
-    // ✨ Reset state logo setiap kali mulai edit
     setLogoFile(null);
     setRemoveLogo(false);
     setEditLinkHubError("");
@@ -1117,7 +1119,6 @@ function App() {
 
       const updateUrl = `${API_URL}/api/link-hubs/${editingLinkHub.id}`;
 
-      // ✨ Pakai FormData karena ada upload file logo
       const formData = new FormData();
       formData.append("title", titleValue);
       formData.append("description", descriptionValue || "");
@@ -1127,7 +1128,7 @@ function App() {
         "locked_unit_kerja_id",
         editLinkHubForm.locked_unit_kerja_id || "",
       );
-      formData.append("_method", "PUT"); // ← Laravel method spoofing
+      formData.append("_method", "PUT");
 
       if (logoFile) {
         formData.append("logo", logoFile);
@@ -1137,7 +1138,7 @@ function App() {
       }
 
       const response = await fetch(updateUrl, {
-        method: "POST", // ← POST + _method=PUT untuk FormData
+        method: "POST",
         headers: {
           Accept: "application/json",
           Authorization: `Bearer ${token}`,
@@ -1196,13 +1197,11 @@ function App() {
         locked_unit_kerja_id: "",
       });
 
-      // ✨ Reset state logo setelah sukses
       setLogoFile(null);
       setRemoveLogo(false);
 
       setEditLinkHubError("");
 
-      // ✨ Modal card notifikasi
       setNotifModal({
         isOpen: true,
         variant: "success",
@@ -1242,18 +1241,12 @@ function App() {
       return;
     }
 
-    const finalAlias = aliasOverride || linkHubForm.short_code;
-
-    if (!finalAlias) {
-      setLinkHubError("Alias Link Hub wajib diisi.");
-      return;
-    }
+    const finalAlias = aliasOverride || linkHubForm.short_code || "";
 
     try {
       setLinkHubLoading(true);
       setLinkHubError("");
 
-      // ✨ Pakai FormData karena ada upload file logo
       const formData = new FormData();
       formData.append("title", linkHubForm.title);
       formData.append("description", linkHubForm.description || "");
@@ -1277,7 +1270,6 @@ function App() {
       const result = await response.json();
 
       if (!response.ok) {
-        // ✨ LOGIKA KHUSUS LINK HUB: Jika alias sudah dimiliki oleh OPD user
         if (result.error_code === "alias_already_owned_by_you") {
           setNotifModal({
             isOpen: true,
@@ -1299,7 +1291,6 @@ function App() {
           return;
         }
 
-        // ✨ LOGIKA KHUSUS LINK HUB: Jika alias terkunci untuk OPD lain
         if (result.error_code === "alias_locked_to_other") {
           setNotifModal({
             isOpen: true,
@@ -1312,7 +1303,6 @@ function App() {
           return;
         }
 
-        // Error biasa (termasuk alias duplikat biasa)
         const validationMessage = result.errors
           ? Object.values(result.errors).flat().join(" ")
           : "";
@@ -1331,14 +1321,12 @@ function App() {
         type: "UMUM",
       });
 
-      // ✨ Reset state logo setelah sukses
       setLogoFile(null);
       setRemoveLogo(false);
 
       setShowLinkHubForm(false);
       setLinkHubError("");
 
-      // ✨ Modal card notifikasi (bukan toast)
       setNotifModal({
         isOpen: true,
         variant: "success",
@@ -1407,7 +1395,6 @@ function App() {
       const result = await response.json();
 
       if (!response.ok) {
-        // ✨ KONTEN SENSITIF — Pakai MODAL
         if (result.error_code === "blocked_content") {
           setNotifModal({
             isOpen: true,
@@ -1563,7 +1550,6 @@ function App() {
       const result = await response.json();
 
       if (!response.ok) {
-        // ✨ KONTEN SENSITIF — Pakai MODAL
         if (result.error_code === "blocked_content") {
           setNotifModal({
             isOpen: true,
@@ -2197,7 +2183,6 @@ function App() {
       const result = await response.json();
 
       if (!response.ok) {
-        // ✨ KONTEN SENSITIF — Pakai MODAL
         if (result.error_code === "blocked_content") {
           setNotifModal({
             isOpen: true,
@@ -2209,7 +2194,6 @@ function App() {
           return;
         }
 
-        // ✨ ERROR BIASA (Termasuk Alias Duplikat) — Pakai TOAST
         const errorMessage =
           result.message ||
           (result.errors ? Object.values(result.errors).flat().join(" ") : "");
@@ -2292,7 +2276,6 @@ function App() {
       const result = await response.json();
 
       if (!response.ok) {
-        // ✨ KONTEN SENSITIF — Pakai MODAL
         if (result.error_code === "blocked_content") {
           setNotifModal({
             isOpen: true,
@@ -2304,7 +2287,6 @@ function App() {
           return;
         }
 
-        // ✨ ERROR BIASA (Termasuk Alias Duplikat) — Pakai TOAST
         const validationMessage = result.errors
           ? Object.values(result.errors).flat().join(" ")
           : "";
@@ -2544,6 +2526,160 @@ function App() {
     );
   });
 
+  // ✨ FUNGSI LOADING REDIRECT
+  const handleRedirect = (url) => {
+    setRedirectUrl(url);
+    setIsRedirecting(true);
+
+    // Tunggu 1.5 detik, lalu buka link di tab yang sama
+    setTimeout(() => {
+      window.location.href = url;
+      setIsRedirecting(false);
+      setRedirectUrl(null);
+    }, 1500);
+  };
+
+  // =====================================================
+  // RENDER LOADING REDIRECT PAGE (SELARAS DENGAN TEMA PENINK)
+  // =====================================================
+  if (isRedirecting) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          // Background gradasi biru sangat muda, persis seperti halaman login
+          background: "linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%)",
+          fontFamily: "system-ui, -apple-system, sans-serif",
+          padding: "20px",
+        }}
+      >
+        {/* Kartu Putih Bersih */}
+        <div
+          style={{
+            backgroundColor: "#ffffff",
+            padding: "56px 48px",
+            borderRadius: "24px",
+            boxShadow: "0 20px 40px -10px rgba(0, 0, 0, 0.08)",
+            border: "1px solid #f1f5f9",
+            textAlign: "center",
+            maxWidth: "440px",
+            width: "100%",
+          }}
+        >
+          {/* Dual-Ring Spinner Biru PENINK */}
+          <div
+            style={{
+              position: "relative",
+              width: "64px",
+              height: "64px",
+              margin: "0 auto 32px auto",
+            }}
+          >
+            {/* Lingkaran Luar */}
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                border: "4px solid #eff6ff", // Biru sangat muda
+                borderTopColor: "#3b82f6", // Biru PENINK
+                borderRadius: "50%",
+                animation: "spin 1s linear infinite",
+              }}
+            ></div>
+            {/* Lingkaran Dalam */}
+            <div
+              style={{
+                position: "absolute",
+                inset: "8px",
+                border: "3px solid transparent",
+                borderBottomColor: "#60a5fa", // Biru muda
+                borderRadius: "50%",
+                animation: "spinReverse 1.5s linear infinite",
+              }}
+            ></div>
+          </div>
+
+          <h2
+            style={{
+              fontSize: "22px",
+              fontWeight: "800",
+              color: "#1e293b", // Warna teks heading PENINK
+              margin: "0 0 12px 0",
+              letterSpacing: "-0.5px",
+            }}
+          >
+            Mengalihkan Anda...
+          </h2>
+          <p
+            style={{
+              fontSize: "15px",
+              color: "#64748b", // Warna teks abu-abu PENINK
+              margin: "0 0 24px 0",
+              lineHeight: "1.6",
+            }}
+          >
+            Sistem sedang mengarahkan Anda ke halaman tujuan. Mohon tunggu
+            sebentar.
+          </p>
+
+          {/* Badge URL Tujuan (Putih Abu-abu) */}
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              backgroundColor: "#f8fafc",
+              padding: "8px 16px",
+              borderRadius: "999px",
+              border: "1px solid #e2e8f0",
+            }}
+          >
+            <span
+              style={{
+                display: "inline-block",
+                width: "8px",
+                height: "8px",
+                backgroundColor: "#10b981", // Titik hijau
+                borderRadius: "50%",
+                marginRight: "10px",
+              }}
+            ></span>
+            <span
+              style={{
+                fontSize: "13px",
+                color: "#475569",
+                fontWeight: "600",
+                maxWidth: "240px",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {redirectUrl ? new URL(redirectUrl).hostname : "Memuat..."}
+            </span>
+          </div>
+
+          {/* Animasi CSS */}
+          <style>
+            {`
+              @keyframes spin {
+                to { transform: rotate(360deg); }
+              }
+              @keyframes spinReverse {
+                to { transform: rotate(-360deg); }
+              }
+            `}
+          </style>
+        </div>
+      </div>
+    );
+  }
+
+  // =====================================================
+  // RENDER PUBLIC LINK HUB
+  // =====================================================
   const renderPublicHub = () => {
     if (publicHubLoading) {
       return (
@@ -2607,21 +2743,135 @@ function App() {
       }
 
       return (
-        <div className="pub">
-          <div className="pub__error-card">
-            <div className="pub__error-icon">🔗</div>
-            <h1>Link Hub Tidak Ditemukan</h1>
-            <p>{publicHubError}</p>
-          </div>
-        </div>
-      );
-    }
+        <div
+          style={{
+            minHeight: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "#f8fafc",
+            backgroundImage: "radial-gradient(#cbd5e1 1px, transparent 1px)",
+            backgroundSize: "24px 24px",
+            padding: "20px",
+            position: "relative",
+            overflow: "hidden",
+            fontFamily: "system-ui, -apple-system, sans-serif",
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              width: "400px",
+              height: "400px",
+              background: "rgba(59, 130, 246, 0.15)",
+              filter: "blur(80px)",
+              borderRadius: "50%",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              zIndex: 0,
+            }}
+          ></div>
 
-    if (!publicHub) {
-      return (
-        <div className="pub">
-          <div className="pub__loading">
-            <p>Link Hub tidak ditemukan.</p>
+          <div
+            style={{
+              position: "relative",
+              zIndex: 1,
+              backgroundColor: "rgba(255, 255, 255, 0.85)",
+              backdropFilter: "blur(16px)",
+              WebkitBackdropFilter: "blur(16px)",
+              borderRadius: "32px",
+              padding: "56px 40px",
+              maxWidth: "460px",
+              width: "100%",
+              textAlign: "center",
+              border: "1px solid rgba(255, 255, 255, 0.5)",
+              boxShadow:
+                "0 25px 50px -12px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0,0,0,0.02)",
+            }}
+          >
+            <div
+              style={{
+                width: "96px",
+                height: "96px",
+                backgroundColor: "#ffffff",
+                borderRadius: "28px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto 32px auto",
+                boxShadow: "0 10px 25px -5px rgba(59, 130, 246, 0.4)",
+                border: "1px solid #f1f5f9",
+                transform: "rotate(-5deg)",
+              }}
+            >
+              <MapPinOff
+                size={48}
+                color="#3b82f6"
+                strokeWidth={1.5}
+                style={{ transform: "rotate(5deg)" }}
+              />
+            </div>
+
+            <h1
+              style={{
+                fontSize: "28px",
+                fontWeight: "800",
+                color: "#0f172a",
+                marginBottom: "16px",
+                marginTop: 0,
+                letterSpacing: "-0.5px",
+              }}
+            >
+              Alamat Tidak Ditemukan
+            </h1>
+
+            <p
+              style={{
+                fontSize: "16px",
+                color: "#64748b",
+                lineHeight: "1.6",
+                marginBottom: "40px",
+                padding: "0 10px",
+              }}
+            >
+              Ups! Sepertinya tautan yang Anda tuju salah ketik, sudah
+              kedaluwarsa, atau dihapus dari sistem.
+            </p>
+
+            <a
+              href="https://s.landakkab.go.id/"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+                color: "#ffffff",
+                textDecoration: "none",
+                padding: "14px 32px",
+                borderRadius: "14px",
+                fontWeight: "600",
+                fontSize: "16px",
+                width: "100%",
+                boxSizing: "border-box",
+                transition: "all 0.3s ease",
+                boxShadow: "0 10px 20px -10px rgba(37, 99, 235, 0.6)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow =
+                  "0 15px 25px -10px rgba(37, 99, 235, 0.8)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow =
+                  "0 10px 20px -10px rgba(37, 99, 235, 0.6)";
+              }}
+            >
+              <ArrowLeft size={18} strokeWidth={2.5} />
+              Kembali ke Beranda
+            </a>
           </div>
         </div>
       );
@@ -2652,7 +2902,6 @@ function App() {
 
             <div className="pub__hero-content">
               <div className="pub__logo-wrap">
-                {/* ✨ Pakai logo custom kalau ada, kalau tidak pakai logo Kominfo default */}
                 <img
                   src={publicHub.logo_url || "/Lambang_Kabupaten_Landak.png"}
                   alt={`Logo ${publicHub.title}`}
@@ -2697,13 +2946,23 @@ function App() {
           <div className="pub__links">
             {activeItems.length > 0 ? (
               activeItems.map((item, index) => (
-                <a
+                <button
                   key={item.id}
-                  href={item.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleRedirect(item.url);
+                  }}
                   className="pub__link"
-                  style={{ animationDelay: `${index * 60}ms` }}
+                  style={{
+                    animationDelay: `${index * 60}ms`,
+                    width: "100%",
+                    textAlign: "left",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                  }}
                 >
                   <div className="pub__link-icon">↗</div>
 
@@ -2717,7 +2976,7 @@ function App() {
                   </div>
 
                   <div className="pub__link-arrow">→</div>
-                </a>
+                </button>
               ))
             ) : (
               <div className="pub__empty">
@@ -2851,7 +3110,6 @@ function App() {
         user={user}
         isAdmin={isAdmin}
         isSuperAdmin={isSuperAdmin}
-        isAdminUnit={isAdminUnit}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         onLogout={handleLogout}
@@ -3004,7 +3262,6 @@ function App() {
                       deleteLinkItem={deleteLinkItem}
                       moveLinkItem={moveLinkItem}
                       toggleLinkItemStatus={toggleLinkItemStatus}
-                      /* ✨ Props baru untuk upload logo */
                       logoFile={logoFile}
                       setLogoFile={setLogoFile}
                       removeLogo={removeLogo}

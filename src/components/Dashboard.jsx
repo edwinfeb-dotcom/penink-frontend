@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from "react";
 
 import {
   Users,
@@ -8,7 +8,7 @@ import {
   Users2,
   QrCode,
   ArrowRight,
-} from 'lucide-react'
+} from "lucide-react";
 
 import {
   ResponsiveContainer,
@@ -18,9 +18,9 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-} from 'recharts'
+} from "recharts";
 
-import './Dashboard.css'
+import "./Dashboard.css";
 
 function Dashboard({
   API_URL,
@@ -48,15 +48,30 @@ function Dashboard({
 
   if (isAdmin) {
     const statCards = [
-      { label: 'Total User', value: adminStats?.total_users ?? 0, icon: Users, color: 'blue' },
-      { label: 'Total Short Link', value: adminStats?.total_short_links ?? 0, icon: Link2, color: 'indigo' },
-      { label: 'Total Klik', value: adminStats?.total_clicks ?? 0, icon: MousePointerClick, color: 'orange' },
-      { label: 'QR di-scan', value: qrScans ?? 0, icon: QrCode, color: 'red' },
-    ]
+      {
+        label: "Total User",
+        value: adminStats?.total_users ?? 0,
+        icon: Users,
+        color: "blue",
+      },
+      {
+        label: "Total Short Link",
+        value: adminStats?.total_short_links ?? 0,
+        icon: Link2,
+        color: "indigo",
+      },
+      {
+        label: "Total Klik",
+        value: adminStats?.total_clicks ?? 0,
+        icon: MousePointerClick,
+        color: "orange",
+      },
+      { label: "QR di-scan", value: qrScans ?? 0, icon: QrCode, color: "red" },
+    ];
 
     const unitChartData = (adminStats?.short_links_by_unit || []).map(
-      (item) => ({ unit: item.unit_kerja, jumlah: item.jumlah })
-    )
+      (item) => ({ unit: item.unit_kerja, jumlah: item.jumlah }),
+    );
 
     return (
       <div className="dashboard">
@@ -64,7 +79,7 @@ function Dashboard({
           <div className="dashboard__hero-content">
             <span className="dashboard__hero-badge">PENINK ADMIN</span>
             <h1 className="dashboard__hero-title">
-              Selamat datang, {user?.name || 'Admin'} 👋
+              Selamat datang, {user?.name || "Admin"} 👋
             </h1>
             <p className="dashboard__hero-subtitle">
               Kelola sistem PENINK dengan mudah dan cepat.
@@ -74,14 +89,14 @@ function Dashboard({
               <button
                 type="button"
                 className="dashboard__hero-btn"
-                onClick={() => setActivePage('users')}
+                onClick={() => setActivePage("users")}
               >
                 Kelola User <ArrowRight size={16} />
               </button>
               <button
                 type="button"
                 className="dashboard__hero-btn dashboard__hero-btn--ghost"
-                onClick={() => setActivePage('shortlink')}
+                onClick={() => setActivePage("shortlink")}
               >
                 Lihat Short Link
               </button>
@@ -96,16 +111,18 @@ function Dashboard({
 
         <div className="dashboard__stats">
           {statCards.map((card, index) => {
-            const Icon = card.icon
+            const Icon = card.icon;
             return (
               <div key={index} className={`dash-stat dash-stat--${card.color}`}>
-                <div className="dash-stat__icon"><Icon size={20} /></div>
+                <div className="dash-stat__icon">
+                  <Icon size={20} />
+                </div>
                 <div className="dash-stat__body">
                   <span className="dash-stat__label">{card.label}</span>
                   <span className="dash-stat__value">{card.value}</span>
                 </div>
               </div>
-            )
+            );
           })}
         </div>
 
@@ -132,23 +149,52 @@ function Dashboard({
                   data={unitChartData}
                   margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" horizontal={false} />
-                  <XAxis type="number" allowDecimals={false} axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 12 }} />
-                  <YAxis type="category" dataKey="unit" width={240} axisLine={false} tickLine={false} tick={{ fill: '#334155', fontSize: 11 }} />
-                  <Tooltip
-                    cursor={{ fill: '#F1F5F9' }}
-                    contentStyle={{ border: '1px solid #E2E8F0', borderRadius: '10px', boxShadow: '0 8px 20px rgba(15, 23, 42, 0.08)', fontSize: '13px' }}
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="#E2E8F0"
+                    horizontal={false}
                   />
-                  <Bar dataKey="jumlah" fill="#0F766E" radius={[0, 8, 8, 0]} barSize={22} />
+                  <XAxis
+                    type="number"
+                    allowDecimals={false}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "#64748B", fontSize: 12 }}
+                  />
+                  <YAxis
+                    type="category"
+                    dataKey="unit"
+                    width={240}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "#334155", fontSize: 11 }}
+                  />
+                  <Tooltip
+                    cursor={{ fill: "#F1F5F9" }}
+                    contentStyle={{
+                      border: "1px solid #E2E8F0",
+                      borderRadius: "10px",
+                      boxShadow: "0 8px 20px rgba(15, 23, 42, 0.08)",
+                      fontSize: "13px",
+                    }}
+                  />
+                  <Bar
+                    dataKey="jumlah"
+                    fill="#0F766E"
+                    radius={[0, 8, 8, 0]}
+                    barSize={22}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="dashboard__empty">Data unit kerja belum tersedia.</div>
+              <div className="dashboard__empty">
+                Data unit kerja belum tersedia.
+              </div>
             )}
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   // =====================================================
@@ -156,11 +202,31 @@ function Dashboard({
   // =====================================================
 
   const userStatCards = [
-    { label: 'Total Link', value: shortLinks.length, icon: Link2, color: 'blue' },
-    { label: 'Total Klik', value: totalClicks, icon: MousePointerClick, color: 'orange' },
-    { label: 'Klik Hari Ini', value: todayClicks, icon: CheckCircle2, color: 'green' },
-    { label: 'Klik Bulan Ini', value: monthClicks, icon: Users2, color: 'indigo' },
-  ]
+    {
+      label: "Total Link",
+      value: shortLinks.length,
+      icon: Link2,
+      color: "blue",
+    },
+    {
+      label: "Total Klik",
+      value: totalClicks,
+      icon: MousePointerClick,
+      color: "orange",
+    },
+    {
+      label: "Klik Hari Ini",
+      value: todayClicks,
+      icon: CheckCircle2,
+      color: "green",
+    },
+    {
+      label: "Klik Bulan Ini",
+      value: monthClicks,
+      icon: Users2,
+      color: "indigo",
+    },
+  ];
 
   return (
     <div className="dashboard">
@@ -168,7 +234,7 @@ function Dashboard({
         <div className="dashboard__hero-content">
           <span className="dashboard__hero-badge">PENINK</span>
           <h1 className="dashboard__hero-title">
-            Halo, {user?.name || 'Pengguna'} 👋
+            Halo, {user?.name || "Pengguna"} 👋
           </h1>
           <p className="dashboard__hero-subtitle">
             Buat, kelola, dan pantau short link kamu dengan mudah.
@@ -178,7 +244,7 @@ function Dashboard({
             <button
               type="button"
               className="dashboard__hero-btn"
-              onClick={() => setActivePage('shortlink')}
+              onClick={() => setActivePage("shortlink")}
             >
               Kelola Short Link <ArrowRight size={16} />
             </button>
@@ -201,8 +267,9 @@ function Dashboard({
         </div>
 
         <div className="dashboard__form">
+          {/* ✨ UBAH CLASS DARI "input" MENJADI "dashboard-input" ✨ */}
           <input
-            className="input"
+            className="dashboard-input"
             type="text"
             placeholder="https://contoh.go.id/halaman-panjang"
             value={url}
@@ -210,7 +277,7 @@ function Dashboard({
           />
 
           <input
-            className="input"
+            className="dashboard-input"
             type="text"
             placeholder="Judul link (opsional)"
             value={title}
@@ -218,7 +285,7 @@ function Dashboard({
           />
 
           <input
-            className="input"
+            className="dashboard-input"
             type="text"
             placeholder="Custom alias (opsional)"
             value={alias}
@@ -231,23 +298,25 @@ function Dashboard({
             onClick={() => shortenUrl()}
             disabled={loading}
           >
-            {loading ? 'Memproses...' : '🔗 Singkatkan URL'}
+            {loading ? "Memproses..." : "🔗 Singkatkan URL"}
           </button>
         </div>
       </div>
 
       <div className="dashboard__stats">
         {userStatCards.map((card, index) => {
-          const Icon = card.icon
+          const Icon = card.icon;
           return (
             <div key={index} className={`dash-stat dash-stat--${card.color}`}>
-              <div className="dash-stat__icon"><Icon size={20} /></div>
+              <div className="dash-stat__icon">
+                <Icon size={20} />
+              </div>
               <div className="dash-stat__body">
                 <span className="dash-stat__label">{card.label}</span>
                 <span className="dash-stat__value">{card.value}</span>
               </div>
             </div>
-          )
+          );
         })}
       </div>
 
@@ -262,7 +331,7 @@ function Dashboard({
           <button
             type="button"
             className="dashboard__list-btn"
-            onClick={() => setActivePage('shortlink')}
+            onClick={() => setActivePage("shortlink")}
           >
             Lihat Semua
           </button>
@@ -281,10 +350,12 @@ function Dashboard({
                 <div className="dashboard__link-info">
                   <div className="dashboard__link-top">
                     <strong className="dashboard__link-title">
-                      {link.title || 'Tanpa judul'}
+                      {link.title || "Tanpa judul"}
                     </strong>
-                    <span className={`dashboard__link-status ${link.status ? 'dashboard__link-status--active' : 'dashboard__link-status--inactive'}`}>
-                      {link.status ? 'Aktif' : 'Nonaktif'}
+                    <span
+                      className={`dashboard__link-status ${link.status ? "dashboard__link-status--active" : "dashboard__link-status--inactive"}`}
+                    >
+                      {link.status ? "Aktif" : "Nonaktif"}
                     </span>
                   </div>
 
@@ -301,7 +372,7 @@ function Dashboard({
         )}
       </div>
     </div>
-  )
+  );
 }
 
-export default Dashboard
+export default Dashboard;

@@ -22,7 +22,6 @@
   width: 100%;
 }
 
-
 /* HEADER */
 
 .lh__header {
@@ -55,13 +54,15 @@
   padding: 0 var(--space-5);
   border: none;
   border-radius: var(--radius-md);
-  background: linear-gradient(135deg, #2563EB, #1D4ED8);
-  color: #FFFFFF;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
   font-size: var(--font-size-base);
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 6px 16px -6px rgba(37, 99, 235, 0.5);
-  transition: transform 0.15s ease, box-shadow 0.18s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.18s ease;
   flex-shrink: 0;
 }
 
@@ -69,7 +70,6 @@
   transform: translateY(-1px);
   box-shadow: 0 10px 22px -6px rgba(37, 99, 235, 0.6);
 }
-
 
 /* INFO CARD — UPGRADED */
 
@@ -79,15 +79,15 @@
   display: flex;
   gap: var(--space-4);
   padding: var(--space-6) var(--space-6);
-  background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
   border: none;
   border-radius: var(--radius-xl);
-  color: #FFFFFF;
+  color: #ffffff;
   box-shadow: 0 10px 30px -10px rgba(30, 58, 138, 0.35);
 }
 
 .lh__info::before {
-  content: '';
+  content: "";
   position: absolute;
   width: 260px;
   height: 260px;
@@ -99,7 +99,7 @@
 }
 
 .lh__info::after {
-  content: '';
+  content: "";
   position: absolute;
   width: 180px;
   height: 180px;
@@ -117,10 +117,10 @@
   height: 48px;
   flex-shrink: 0;
   border-radius: var(--radius-lg);
-  background: rgba(255, 220, 100, 0.20);
+  background: rgba(255, 220, 100, 0.2);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 220, 100, 0.35);
-  color: #FCD34D;
+  color: #fcd34d;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -138,7 +138,7 @@
   display: block;
   font-size: var(--font-size-lg);
   font-weight: 800;
-  color: #FFFFFF;
+  color: #ffffff;
   margin-bottom: 8px;
   letter-spacing: -0.3px;
   text-align: left;
@@ -164,8 +164,8 @@
   justify-content: center;
   border: none;
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.10);
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
   cursor: pointer;
   transition: background 0.15s ease;
 }
@@ -188,7 +188,7 @@
 
 .lh__info-deco-icon {
   position: absolute;
-  color: #FFFFFF;
+  color: #ffffff;
   opacity: 0.08;
   stroke-width: 1.5;
 }
@@ -220,12 +220,11 @@
   opacity: 0.05;
 }
 
-
 /* FORM */
 
 .lh__form-card,
 .lh__list-card {
-  background: #FFFFFF;
+  background: #ffffff;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: var(--space-6);
@@ -233,8 +232,8 @@
 }
 
 .lh__form-card--edit {
-  border-color: #FCD34D;
-  background: #FFFBEB;
+  border-color: #fcd34d;
+  background: #fffbeb;
 }
 
 .lh__form-header {
@@ -259,8 +258,8 @@
 }
 
 .lh__form-icon--edit {
-  background: #FEF3C7;
-  color: #B45309;
+  background: #fef3c7;
+  color: #b45309;
 }
 
 .lh__form-title {
@@ -304,15 +303,15 @@
   width: 100%;
   height: 44px;
   padding: 0 var(--space-4);
-  border: 1px solid var(--color-border);
+  border: 1px solid #cbd5e1;
   border-radius: var(--radius-md);
-  background: #FFFFFF;
+  background: #f8fafc;
   color: var(--color-dark);
   font-size: var(--font-size-md);
   font-family: inherit;
   outline: none;
   box-sizing: border-box;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
 }
 
 .lh__input--textarea {
@@ -328,22 +327,25 @@
 }
 
 .lh__input:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  background-color: #ffffff;
+  border-color: #3b82f6;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
-
 .lh__hint {
   font-size: var(--font-size-xs);
   color: var(--color-gray);
 }
 
 .lh__error {
-  padding: 12px 14px;
-  border-radius: var(--radius-md);
-  background: var(--color-danger-bg);
-  color: var(--color-danger-text);
-  font-size: var(--font-size-sm);
+  background-color: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
   font-weight: 500;
+  margin-bottom: 16px;
 }
 
 .lh__form-actions {
@@ -359,13 +361,15 @@
   padding: 0 var(--space-6);
   border: none;
   border-radius: var(--radius-md);
-  background: linear-gradient(135deg, #2563EB, #1D4ED8);
-  color: #FFFFFF;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
   font-size: var(--font-size-md);
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 8px 20px -8px rgba(37, 99, 235, 0.5);
-  transition: transform 0.15s ease, box-shadow 0.18s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.18s ease;
 }
 
 .lh__submit:hover:not(:disabled) {
@@ -373,7 +377,7 @@
 }
 
 .lh__submit:disabled {
-  background: #93C5FD;
+  background: #93c5fd;
   cursor: not-allowed;
   box-shadow: none;
 }
@@ -392,7 +396,7 @@
   padding: 0 var(--space-4);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: #FFFFFF;
+  background: #ffffff;
   color: var(--color-dark-3);
   font-size: var(--font-size-sm);
   font-weight: 600;
@@ -402,9 +406,8 @@
 
 .lh__btn-secondary:hover {
   background: var(--color-bg);
-  border-color: #CBD5E1;
+  border-color: #cbd5e1;
 }
-
 
 /* =====================================================
    ✨ UPLOAD LOGO — FORM
@@ -417,9 +420,9 @@
   justify-content: center;
   gap: 6px;
   padding: 20px 16px;
-  border: 2px dashed #CBD5E1;
+  border: 2px dashed #cbd5e1;
   border-radius: var(--radius-md);
-  background: #F8FAFC;
+  background: #f8fafc;
   cursor: pointer;
   transition: all 0.18s ease;
   text-align: center;
@@ -427,7 +430,7 @@
 
 .lh__upload-area:hover {
   border-color: var(--color-primary);
-  background: #EFF6FF;
+  background: #eff6ff;
 }
 
 .lh__upload-icon {
@@ -455,7 +458,7 @@
   gap: 12px;
   margin-top: 10px;
   padding: 12px;
-  background: #F8FAFC;
+  background: #f8fafc;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
 }
@@ -465,7 +468,7 @@
   height: 56px;
   object-fit: contain;
   border-radius: 10px;
-  background: #FFFFFF;
+  background: #ffffff;
   padding: 6px;
   border: 1px solid var(--color-border);
   box-sizing: border-box;
@@ -501,19 +504,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #FECACA;
+  border: 1px solid #fecaca;
   border-radius: var(--radius-md);
-  background: #FEF2F2;
-  color: #B91C1C;
+  background: #fef2f2;
+  color: #b91c1c;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .lh__logo-remove:hover {
-  background: #FEE2E2;
-  border-color: #FCA5A5;
+  background: #fee2e2;
+  border-color: #fca5a5;
 }
-
 
 /* LIST HEADER */
 
@@ -547,11 +549,10 @@
   gap: var(--space-4);
 }
 
-
 /* ITEM CARD */
 
 .lh__item {
-  background: #FFFFFF;
+  background: #ffffff;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: var(--space-5);
@@ -559,7 +560,7 @@
 }
 
 .lh__item:hover {
-  border-color: #CBD5E1;
+  border-color: #cbd5e1;
 }
 
 .lh__item-header {
@@ -587,7 +588,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #F8FAFC;
+  background: #f8fafc;
   border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 6px;
@@ -661,8 +662,9 @@
 }
 
 .lh__item-meta {
-  flex-shrink: 0;
-  text-align: right;
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .lh__meta-item strong {
@@ -678,7 +680,6 @@
   color: var(--color-gray);
   letter-spacing: 0.4px;
 }
-
 
 /* ACTION BUTTONS */
 
@@ -698,7 +699,7 @@
   padding: 0 var(--space-3);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: #FFFFFF;
+  background: #ffffff;
   color: var(--color-dark-3);
   font-size: var(--font-size-sm);
   font-weight: 600;
@@ -715,12 +716,12 @@
 .lh__btn-action--active {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 .lh__btn-action--active:hover {
   background: var(--color-primary-dark);
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 .lh__btn-action--danger:hover {
@@ -728,7 +729,6 @@
   border-color: var(--color-danger);
   color: var(--color-danger-text);
 }
-
 
 /* QR POPUP */
 
@@ -743,7 +743,6 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
 }
-
 
 /* INNER (LIST LINK DI HUB) */
 
@@ -795,7 +794,7 @@
   align-items: center;
   gap: var(--space-4);
   padding: var(--space-3) var(--space-4);
-  background: #FFFFFF;
+  background: #ffffff;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
 }
@@ -848,7 +847,7 @@
   justify-content: center;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: #FFFFFF;
+  background: #ffffff;
   color: var(--color-dark-3);
   cursor: pointer;
   transition: all 0.15s ease;
@@ -865,7 +864,6 @@
   border-color: var(--color-danger);
   color: var(--color-danger-text);
 }
-
 
 /* EMPTY */
 
@@ -891,7 +889,6 @@
   margin: 0;
   font-size: var(--font-size-sm);
 }
-
 
 /* =====================================================
    RESPONSIVE
@@ -996,10 +993,30 @@
   gap: 4px;
   margin-top: 6px;
   padding: 3px 8px;
-  background: #FEF3C7;
-  color: #92400E;
+  background: #fef3c7;
+  color: #92400e;
   border-radius: 6px;
   font-size: 11px;
   font-weight: 600;
   width: fit-content;
+}
+
+/* =====================================================
+   DRAG & DROP UPLOAD EFFECT
+   ===================================================== */
+.lh__upload-area {
+  /* Pastikan ada transition agar perubahannya halus */
+  transition: all 0.2s ease;
+}
+
+.lh__upload-area--dragging {
+  background-color: #eff6ff !important; /* Biru sangat muda */
+  border-color: #3b82f6 !important; /* Border biru */
+  border-style: dashed;
+  transform: scale(1.02); /* Sedikit membesar */
+}
+
+.lh__upload-area--dragging .lh__upload-icon,
+.lh__upload-area--dragging .lh__upload-text {
+  color: #2563eb !important; /* Warna teks jadi biru */
 }

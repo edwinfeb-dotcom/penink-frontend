@@ -272,7 +272,7 @@
   padding: 0 15px;
   border: 1px solid #d9e1ec;
   border-radius: 10px;
-  background: #ffffff;
+  background: #f8fafc;
   color: #0f172a;
   font-size: 14px;
   font-family: inherit;
@@ -679,7 +679,7 @@
 .login-field .input:-webkit-autofill:hover,
 .login-field .input:-webkit-autofill:focus,
 .login-field .input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  -webkit-box-shadow: 0 0 0 1000px #f8fafc inset !important;
   -webkit-text-fill-color: #0f172a !important;
   caret-color: #0f172a;
   transition: background-color 5000s ease-in-out 0s;

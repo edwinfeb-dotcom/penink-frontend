@@ -20,7 +20,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { QRCodeCanvas } from "qrcode.react";
-import UnitKerjaPicker from "./UnitKerjaPicker";
+
 import { useToast } from "./Toast";
 import "./LinkHub.css";
 
@@ -62,7 +62,6 @@ function LinkHub({
   deleteLinkItem,
   moveLinkItem,
   toggleLinkItemStatus,
-  // ✨ PROPS BARU UNTUK UPLOAD LOGO
   logoFile,
   setLogoFile,
   removeLogo,
@@ -70,47 +69,14 @@ function LinkHub({
 }) {
   const toast = useToast();
   const [showInfo, setShowInfo] = useState(true);
+  const [isDragging, setIsDragging] = useState(false);
 
-  // State untuk dropdown alias terkunci
   const [manualAlias, setManualAlias] = useState("");
   const [selectedLockedAliasId, setSelectedLockedAliasId] = useState("");
   const [lockedAliases, setLockedAliases] = useState([]);
   const [loadingLocked, setLoadingLocked] = useState(false);
   const [aliasError, setAliasError] = useState("");
 
-  // =====================================================
-  // STATE UNTUK FITUR KUNCI UNIT KERJA
-  // =====================================================
-  const [unitKerjas, setUnitKerjas] = useState([]);
-  const [lockedUnitKerjaId, setLockedUnitKerjaId] = useState("");
-
-  // =====================================================
-  // CEK APAKAH USER BOLEH KUNCI KE UNIT KERJA
-  // =====================================================
-  const canLockToUnit =
-    ["admin", "super_admin", "admin_unit"].includes(
-      String(user?.role || "").toLowerCase(),
-    ) || String(user?.user_type || "").toUpperCase() === "ASN";
-
-  // Fetch daftar unit kerja
-  useEffect(() => {
-    if (!canLockToUnit) return;
-
-    const fetchUnitKerjas = async () => {
-      try {
-        const response = await fetch(`${API_URL}/api/unit-kerjas`);
-        const result = await response.json();
-        if (response.ok) {
-          setUnitKerjas(result.data || []);
-        }
-      } catch (error) {
-        console.error("UNIT KERJA ERROR:", error);
-      }
-    };
-    fetchUnitKerjas();
-  }, [API_URL, canLockToUnit]);
-
-  // Fetch alias terkunci saat form buat dibuka
   useEffect(() => {
     if (!showLinkHubForm) return;
     if (!user?.unit_kerja_id) return;
@@ -138,13 +104,10 @@ function LinkHub({
     fetchLockedAliases();
   }, [showLinkHubForm, user, API_URL]);
 
-  // Reset state lokal saat form ditutup
   useEffect(() => {
     if (!showLinkHubForm) {
       setManualAlias("");
-      setSelectedLockedAliasId("");
       setAliasError("");
-      setLockedUnitKerjaId("");
     }
   }, [showLinkHubForm]);
 
@@ -173,11 +136,7 @@ function LinkHub({
       : lockedAliases.find((a) => a.id === Number(selectedLockedAliasId))
           ?.alias || "";
 
-    createLinkHub(
-      e,
-      finalAlias,
-      canLockToUnit ? lockedUnitKerjaId || null : null,
-    );
+    createLinkHub(e, finalAlias, null);
   };
 
   const handleToggleHub = (hub) => {
@@ -194,30 +153,21 @@ function LinkHub({
     }
   };
 
-  // =====================================================
-  // SALIN LINK PUBLIK LINK HUB
-  // =====================================================
   const handleCopyLink = (hub) => {
     const publicUrl = `${window.location.origin}/${hub.short_code}`;
     navigator.clipboard.writeText(publicUrl);
     toast.success("Link berhasil disalin!");
   };
 
-  // =====================================================
-  // HANDLE UPLOAD LOGO
-  // =====================================================
-  const handleLogoChange = (e) => {
-    const file = e.target.files[0];
+  // Fungsi untuk memproses file (dipakai oleh Input & Drag Drop)
+  const processLogoFile = (file) => {
     if (!file) return;
 
-    // Validasi ukuran (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast.error("Ukuran file maksimal 2MB");
-      e.target.value = "";
       return;
     }
 
-    // Validasi tipe file
     const allowedTypes = [
       "image/png",
       "image/jpeg",
@@ -227,12 +177,40 @@ function LinkHub({
     ];
     if (!allowedTypes.includes(file.type)) {
       toast.error("Format harus PNG, JPG, JPEG, SVG, atau WEBP");
-      e.target.value = "";
       return;
     }
 
     setLogoFile(file);
     setRemoveLogo(false);
+  };
+
+  // Fungsi saat file dipilih lewat tombol input
+  const handleLogoChange = (e) => {
+    const file = e.target.files[0];
+    processLogoFile(file);
+    e.target.value = ""; // Reset input agar bisa pilih file yang sama
+  };
+
+  // Fungsi Drag & Drop
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      processLogoFile(file);
+      e.dataTransfer.clearData();
+    }
   };
 
   return (
@@ -319,7 +297,10 @@ function LinkHub({
             {linkHubError && <div className="lh__error">{linkHubError}</div>}
 
             <div className="lh__field">
-              <label>Judul Link Hub</label>
+              {/* BINTANG MERAH WAJIB ISI */}
+              <label>
+                Judul Link Hub <span style={{ color: "red" }}>*</span>
+              </label>
               <input
                 className="lh__input"
                 type="text"
@@ -348,7 +329,6 @@ function LinkHub({
               />
             </div>
 
-            {/* ✨ FIELD UPLOAD LOGO (CREATE) */}
             <div className="lh__field">
               <label>
                 <ImageIcon
@@ -358,7 +338,13 @@ function LinkHub({
                 Logo Instansi (opsional)
               </label>
 
-              <label className="lh__upload-area" htmlFor="logo-upload-create">
+              <label
+                className={`lh__upload-area ${isDragging ? "lh__upload-area--dragging" : ""}`}
+                htmlFor="logo-upload-create"
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
                 <Upload size={20} className="lh__upload-icon" />
                 <span className="lh__upload-text">
                   {logoFile ? logoFile.name : "Klik untuk pilih file logo"}
@@ -379,7 +365,6 @@ function LinkHub({
                 Kosongkan untuk pakai logo default Diskominfo.
               </small>
 
-              {/* Preview logo */}
               {logoFile && (
                 <div className="lh__logo-preview">
                   <img src={URL.createObjectURL(logoFile)} alt="Preview Logo" />
@@ -399,9 +384,11 @@ function LinkHub({
               )}
             </div>
 
-            {/* ALIAS CUSTOM */}
             <div className="lh__field">
-              <label>Alias Custom (opsional)</label>
+              {/* BINTANG MERAH WAJIB ISI */}
+              <label>
+                Alias Custom <span style={{ color: "red" }}>*</span>
+              </label>
               <input
                 className="lh__input"
                 type="text"
@@ -418,7 +405,6 @@ function LinkHub({
               </small>
             </div>
 
-            {/* ALIAS TERKUNCI — HANYA user dengan unit_kerja_id */}
             {user?.unit_kerja_id && (
               <div className="lh__field">
                 <label>Atau Pilih Alias Terkunci OPD Anda</label>
@@ -449,29 +435,6 @@ function LinkHub({
 
                 <small className="lh__hint">
                   Alias ini khusus untuk OPD Anda (sudah dikunci oleh admin).
-                </small>
-              </div>
-            )}
-
-            {/* PICKER KUNCI UNIT KERJA */}
-            {canLockToUnit && (
-              <div className="lh__field">
-                <label>
-                  <Lock
-                    size={13}
-                    style={{ display: "inline", marginRight: 6 }}
-                  />
-                  Kunci Akses ke Unit Kerja (opsional)
-                </label>
-                <UnitKerjaPicker
-                  unitKerjas={unitKerjas}
-                  value={lockedUnitKerjaId}
-                  onChange={setLockedUnitKerjaId}
-                  placeholder="🔍 Ketik untuk cari unit kerja..."
-                />
-                <small className="lh__hint">
-                  Kalau dipilih, hanya user dari unit kerja tersebut yang bisa
-                  akses Link Hub ini.
                 </small>
               </div>
             )}
@@ -507,7 +470,6 @@ function LinkHub({
                   setManualAlias("");
                   setSelectedLockedAliasId("");
                   setAliasError("");
-                  setLockedUnitKerjaId("");
                   setLogoFile(null);
                   setRemoveLogo(false);
                 }}
@@ -551,7 +513,10 @@ function LinkHub({
             )}
 
             <div className="lh__field">
-              <label>Judul</label>
+              {/* BINTANG MERAH WAJIB ISI */}
+              <label>
+                Judul <span style={{ color: "red" }}>*</span>
+              </label>
               <input
                 className="lh__input"
                 type="text"
@@ -581,7 +546,6 @@ function LinkHub({
               />
             </div>
 
-            {/* ✨ FIELD UPLOAD LOGO (EDIT) */}
             <div className="lh__field">
               <label>
                 <ImageIcon
@@ -591,7 +555,13 @@ function LinkHub({
                 Logo Instansi (opsional)
               </label>
 
-              <label className="lh__upload-area" htmlFor="logo-upload-edit">
+              <label
+                className={`lh__upload-area ${isDragging ? "lh__upload-area--dragging" : ""}`}
+                htmlFor="logo-upload-edit"
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
                 <Upload size={20} className="lh__upload-icon" />
                 <span className="lh__upload-text">
                   {logoFile ? logoFile.name : "Klik untuk ganti logo"}
@@ -612,7 +582,6 @@ function LinkHub({
                 Kosongkan untuk pakai logo default Diskominfo.
               </small>
 
-              {/* Preview: prioritas file baru > logo lama */}
               {(logoFile || (editingLinkHub?.logo_url && !removeLogo)) && (
                 <div className="lh__logo-preview">
                   <img
@@ -666,7 +635,10 @@ function LinkHub({
             </div>
 
             <div className="lh__field">
-              <label>Alias</label>
+              {/* BINTANG MERAH WAJIB ISI */}
+              <label>
+                Alias <span style={{ color: "red" }}>*</span>
+              </label>
               <input
                 className="lh__input"
                 type="text"
@@ -681,30 +653,6 @@ function LinkHub({
               />
             </div>
 
-            {/* PICKER KUNCI UNIT KERJA DI EDIT */}
-            {canLockToUnit && (
-              <div className="lh__field">
-                <label>
-                  <Lock
-                    size={13}
-                    style={{ display: "inline", marginRight: 6 }}
-                  />
-                  Kunci Akses ke Unit Kerja
-                </label>
-                <UnitKerjaPicker
-                  unitKerjas={unitKerjas}
-                  value={editLinkHubForm.locked_unit_kerja_id || ""}
-                  onChange={(val) =>
-                    setEditLinkHubForm({
-                      ...editLinkHubForm,
-                      locked_unit_kerja_id: val || null,
-                    })
-                  }
-                  placeholder="🔍 Ketik untuk cari unit kerja..."
-                />
-              </div>
-            )}
-
             <div className="lh__form-actions">
               <button
                 type="button"
@@ -716,7 +664,6 @@ function LinkHub({
                     description: "",
                     short_code: "",
                     type: "UMUM",
-                    locked_unit_kerja_id: "",
                   });
                   setEditLinkHubError("");
                   setLogoFile(null);
@@ -771,7 +718,6 @@ function LinkHub({
                 <div key={hub.id} className="lh__item">
                   <div className="lh__item-header">
                     <div className="lh__item-main">
-                      {/* ✨ LOGO PREVIEW DI DAFTAR */}
                       <div className="lh__item-logo-wrap">
                         <img
                           src={hub.logo_url || "/Lambang_Kabupaten_Landak.png"}
@@ -823,9 +769,20 @@ function LinkHub({
                     </div>
 
                     <div className="lh__item-meta">
+                      {/* Existing: Jumlah Link */}
                       <div className="lh__meta-item">
                         <strong>{itemCount}</strong>
                         <span>link</span>
+                      </div>
+                      {/* ✨ BARU: Jumlah Klik */}
+                      <div className="lh__meta-item" title="Total Klik">
+                        <strong>{hub.click_count || 0}</strong>
+                        <span>klik</span>
+                      </div>
+                      {/* ✨ BARU: Jumlah Scan */}
+                      <div className="lh__meta-item" title="Total Scan QR">
+                        <strong>{hub.scan_count || 0}</strong>
+                        <span>scan</span>
                       </div>
                     </div>
                   </div>
@@ -894,11 +851,10 @@ function LinkHub({
                     </button>
                   </div>
 
-                  {/* QR */}
                   {showQr && (
                     <div className="lh__qr-wrapper">
                       <QRCodeCanvas
-                        value={`${window.location.origin}/${hub.short_code}`}
+                        value={`${window.location.origin}/${hub.short_code}?source=qr`} // <--- Tambahkan ?source=qr
                         size={160}
                         level="H"
                         includeMargin={true}
@@ -929,7 +885,6 @@ function LinkHub({
                     </div>
                   )}
 
-                  {/* DAFTAR LINK DI DALAM HUB */}
                   {isOpen && (
                     <div className="lh__inner">
                       <div className="lh__inner-header">
@@ -952,7 +907,10 @@ function LinkHub({
                       >
                         <div className="lh__field-row">
                           <div className="lh__field">
-                            <label>Judul Link</label>
+                            {/* BINTANG MERAH WAJIB ISI */}
+                            <label>
+                              Judul Link <span style={{ color: "red" }}>*</span>
+                            </label>
                             <input
                               className="lh__input"
                               type="text"
@@ -969,7 +927,10 @@ function LinkHub({
                           </div>
 
                           <div className="lh__field">
-                            <label>URL</label>
+                            {/* BINTANG MERAH WAJIB ISI */}
+                            <label>
+                              URL <span style={{ color: "red" }}>*</span>
+                            </label>
                             <input
                               className="lh__input"
                               type="url"
