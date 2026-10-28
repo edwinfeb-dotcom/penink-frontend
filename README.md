@@ -99,12 +99,12 @@ public/
 
 ## 🔐 Role Akses
 
-| Role | Akses |
-|------|-------|
+| Role          | Akses                               |
+| ------------- | ----------------------------------- |
 | `super_admin` | Semua fitur + kelola alias terkunci |
-| `admin` | Kelola semua user & konten |
-| `admin_unit` | Kelola user & konten OPD sendiri |
-| `user` | Short link & link hub sendiri |
+| `admin`       | Kelola semua user & konten          |
+| `admin_unit`  | Kelola user & konten OPD sendiri    |
+| `user`        | Short link & link hub sendiri       |
 
 ## 📝 Lisensi
 
