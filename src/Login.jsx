@@ -829,8 +829,6 @@ function Login({ onLogin }) {
               </div>
             </>
           )}
-
-          <div className="login-footer">PENINK — Kabupaten Landak</div>
         </div>
       </div>
     </div>

@@ -3120,8 +3120,7 @@ function App() {
 
           <footer className="pub__footer">
             <div className="pub__footer-brand">
-              <strong>PENINK</strong>
-              <span>Platform Short Link &amp; Link Hub</span>
+              <span>Pemendek Link dan Link Hub</span>
             </div>
             <div className="pub__footer-copy">
               © {new Date().getFullYear()} Diskominfo Kabupaten Landak
