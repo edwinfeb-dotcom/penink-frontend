@@ -12,17 +12,24 @@ function Login({ onLogin }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // ✨ STATE BARU: Menghitung berapa kali user gagal login
+  // ✨ Menghitung berapa kali user gagal login
   const [loginAttempts, setLoginAttempts] = useState(0);
 
   const [isRegister, setIsRegister] = useState(false);
   const [name, setName] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // State untuk Reset Password (Revisi No. 8)
+  // State untuk Lupa Password (Minta Link)
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [resetSuccess, setResetSuccess] = useState("");
+
+  // ✨ STATE BARU: Untuk Form Buat Password Baru (dari link email)
+  const [isResetPassword, setIsResetPassword] = useState(false);
+  const [resetToken, setResetToken] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   const [unitKerjaId, setUnitKerjaId] = useState("");
   const [userType, setUserType] = useState("UMUM");
@@ -33,6 +40,19 @@ function Login({ onLogin }) {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // ✨ CEK URL: Apakah ini halaman reset password dari email?
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    const email = params.get("email");
+
+    if (token && email && window.location.pathname === "/reset-password") {
+      setIsResetPassword(true);
+      setResetToken(token);
+      setResetEmail(email);
+    }
+  }, []);
 
   useEffect(() => {
     if (!isRegister) return;
@@ -87,7 +107,6 @@ function Login({ onLogin }) {
       }
 
       if (!response.ok) {
-        // ✨ TAMBAHKAN KEGAGALAN LOGIN
         setLoginAttempts((prev) => prev + 1);
         throw new Error(result.message || "Email atau password salah.");
       }
@@ -188,7 +207,7 @@ function Login({ onLogin }) {
   };
 
   // =====================================================
-  // FORGOT PASSWORD (RESET PASSWORD)
+  // FORGOT PASSWORD (MINTA LINK)
   // =====================================================
   const handleForgotPassword = async (e) => {
     e.preventDefault();
@@ -218,6 +237,55 @@ function Login({ onLogin }) {
         "Link reset password telah dikirim ke email Anda. Silakan periksa kotak masuk.",
       );
       setResetEmail("");
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // =====================================================
+  // RESET PASSWORD (SIMPAN PASSWORD BARU DARI EMAIL)
+  // =====================================================
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    if (newPassword !== confirmNewPassword) {
+      setError("Konfirmasi password baru tidak sama.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/api/reset-password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          token: resetToken,
+          email: resetEmail,
+          password: newPassword,
+          password_confirmation: confirmNewPassword,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.message || "Gagal mereset password. Token tidak valid.",
+        );
+      }
+
+      toast.success(
+        "Password berhasil diubah. Silakan login dengan password baru.",
+      );
+      setIsResetPassword(false);
+      window.history.replaceState({}, "", "/login");
     } catch (error) {
       setError(error.message);
     } finally {
@@ -302,8 +370,77 @@ function Login({ onLogin }) {
 
         {/* BAGIAN KANAN - FORM */}
         <div className="login-form-area">
-          {/* ================= FORM RESET PASSWORD ================= */}
-          {isForgotPassword ? (
+          {/* ================= 1. FORM BUAT PASSWORD BARU (DARI EMAIL) ================= */}
+          {isResetPassword ? (
+            <>
+              <div className="login-heading">
+                <h2>Buat Password Baru</h2>
+                <p>Silakan masukkan password baru untuk akun Anda.</p>
+              </div>
+
+              <form onSubmit={handleResetPassword}>
+                <div className="login-field">
+                  <label htmlFor="new-password">
+                    Password Baru <span style={{ color: "red" }}>*</span>
+                  </label>
+                  <div className="password-input-wrapper">
+                    <input
+                      id="new-password"
+                      className="input"
+                      type={showNewPassword ? "text" : "password"}
+                      placeholder="Masukkan password baru"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                    >
+                      {showNewPassword ? (
+                        <EyeOff size={18} />
+                      ) : (
+                        <Eye size={18} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="login-field">
+                  <label htmlFor="confirm-new-password">
+                    Konfirmasi Password Baru{" "}
+                    <span style={{ color: "red" }}>*</span>
+                  </label>
+                  <input
+                    id="confirm-new-password"
+                    className="input"
+                    type="password"
+                    placeholder="Ulangi password baru"
+                    value={confirmNewPassword}
+                    onChange={(e) => setConfirmNewPassword(e.target.value)}
+                    required
+                  />
+                </div>
+
+                {error && (
+                  <div className="login-error" role="alert">
+                    <span className="login-error-icon">⚠</span>
+                    <span>{error}</span>
+                  </div>
+                )}
+
+                <button
+                  className="button login-submit"
+                  type="submit"
+                  disabled={loading}
+                >
+                  {loading ? "Menyimpan..." : "Simpan Password Baru"}
+                </button>
+              </form>
+            </>
+          ) : isForgotPassword ? (
+            // ================= 2. FORM MINTA LINK RESET =================
             <>
               <div className="login-heading">
                 <h2>Lupa Password?</h2>
@@ -374,7 +511,7 @@ function Login({ onLogin }) {
               </form>
             </>
           ) : (
-            // ================= FORM LOGIN / DAFTAR =================
+            // ================= 3. FORM LOGIN / DAFTAR =================
             <>
               <div className="login-heading">
                 <h2>{isRegister ? "Buat Akun" : "Selamat Datang"}</h2>
@@ -494,7 +631,6 @@ function Login({ onLogin }) {
                 </div>
 
                 <div className="login-field">
-                  {/* LABEL PASSWORD SAJA, TANPA TOMBOL LUPA PASSWORD */}
                   <label htmlFor="password">
                     Password <span style={{ color: "red" }}>*</span>
                   </label>
@@ -636,10 +772,10 @@ function Login({ onLogin }) {
                 </button>
               </form>
 
-              {/* ✨ TOMBOL SWITCH & LUPA PASSWORD DI BAGIAN BAWAH */}
               <div className="login-switch">
                 {isRegister ? (
                   <>
+                    {" "}
                     Sudah punya akun?{" "}
                     <button
                       type="button"
@@ -650,7 +786,7 @@ function Login({ onLogin }) {
                       }}
                     >
                       Masuk
-                    </button>
+                    </button>{" "}
                   </>
                 ) : (
                   <>
@@ -665,7 +801,6 @@ function Login({ onLogin }) {
                     >
                       Daftar
                     </button>
-                    {/* 👇 MUNCUL HANYA JIKA SUDAH SALAH LOGIN 1 KALI 👇 */}
                     {loginAttempts > 0 && (
                       <div style={{ marginTop: "16px" }}>
                         <button
@@ -678,7 +813,7 @@ function Login({ onLogin }) {
                           style={{
                             background: "none",
                             border: "none",
-                            color: "#ef4444", // Warna merah
+                            color: "#ef4444",
                             fontSize: "13px",
                             fontWeight: "600",
                             cursor: "pointer",

@@ -62,7 +62,8 @@ function App() {
     "pengaturan",
     "login",
     "register",
-    "profile", // <-- Tambahan untuk halaman profil
+    "profile",
+    "reset-password",
   ];
 
   const pathParts = window.location.pathname.split("/").filter(Boolean);
