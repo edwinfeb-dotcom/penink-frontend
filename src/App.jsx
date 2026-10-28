@@ -25,8 +25,16 @@ import "./App.css";
 function App() {
   const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
   const toast = useToast();
-
   const confirm = useConfirm();
+
+  // =====================================================
+  // STATE UTAMA & AUTENTIKASI
+  // =====================================================
+  const [user, setUser] = useState(null);
+  const [checkingLogin, setCheckingLogin] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activePage, setActivePage] = useState("dashboard");
+  const [showProfile, setShowProfile] = useState(false);
 
   // =====================================================
   // PUBLIC LINK HUB
@@ -54,6 +62,7 @@ function App() {
     "pengaturan",
     "login",
     "register",
+    "profile", // <-- Tambahan untuk halaman profil
   ];
 
   const pathParts = window.location.pathname.split("/").filter(Boolean);
@@ -61,19 +70,11 @@ function App() {
   const isPublicHub =
     pathParts.length === 1 && !RESERVED_PATHS.includes(pathParts[0]);
 
-  // =====================================================
-  // STATE
-  // =====================================================
-
-  const [activePage, setActivePage] = useState("dashboard");
-
   // State untuk Loading Redirect (Revisi No. 26)
   const [redirectUrl, setRedirectUrl] = useState(null);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
-  // =====================================================
-  // STATE — NOTIFICATION MODAL
-  // =====================================================
+  // State — NOTIFICATION MODAL
   const [notifModal, setNotifModal] = useState({
     isOpen: false,
     variant: "info",
@@ -83,23 +84,44 @@ function App() {
   });
 
   // =====================================================
-  // URL SYNC — baca URL saat pertama load
+  // URL SYNC — baca URL & sinkronisasi dengan status login
   // =====================================================
   useEffect(() => {
+    // Tunggu sampai proses pengecekan token login selesai
+    if (isPublicHub || checkingLogin) return;
+
     const path = window.location.pathname.replace(/^\/+|\/+$/g, "");
 
-    if (path && RESERVED_PATHS.includes(path)) {
-      setActivePage(path);
-    } else if (!path) {
+    if (!user) {
+      // --- JIKA BELUM LOGIN ---
       const search = window.location.search;
-      const hasGoogleToken = search.includes("google_token");
       const hasLockedLink = search.includes("locked_link");
 
-      if (!hasGoogleToken && !hasLockedLink) {
+      // Paksa URL ke /login, KECUALI jika sedang membuka link terkunci
+      if (!hasLockedLink && path !== "login") {
+        window.history.replaceState({}, "", "/login");
+      }
+      setShowProfile(false);
+    } else {
+      // --- JIKA SUDAH LOGIN ---
+
+      // Jika URL adalah /profile, buka halaman profil
+      if (path === "profile") {
+        setShowProfile(true);
+      }
+      // Jika user mencoba buka /login atau root "/", arahkan ke /dashboard
+      else if (path === "login" || path === "") {
         window.history.replaceState({}, "", "/dashboard");
+        setActivePage("dashboard");
+        setShowProfile(false);
+      }
+      // Jika membuka halaman lain yang valid (seperti /shortlink, /users), izinkan
+      else if (RESERVED_PATHS.includes(path)) {
+        setActivePage(path);
+        setShowProfile(false);
       }
     }
-  }, []);
+  }, [user, checkingLogin, isPublicHub]);
 
   // =====================================================
   // URL SYNC — listen tombol back/forward browser
@@ -108,10 +130,14 @@ function App() {
     const handlePopState = () => {
       const path = window.location.pathname.replace(/^\/+|\/+$/g, "");
 
-      if (path && RESERVED_PATHS.includes(path)) {
+      if (path === "profile") {
+        setShowProfile(true);
+      } else if (path && RESERVED_PATHS.includes(path)) {
         setActivePage(path);
+        setShowProfile(false);
       } else {
         setActivePage("dashboard");
+        setShowProfile(false);
       }
     };
 
@@ -171,7 +197,13 @@ function App() {
     window.history.pushState({}, "", `/${page}`);
   };
 
-  const [showProfile, setShowProfile] = useState(false);
+  // ✨ Fungsi untuk menutup profil dan mengembalikan URL ke dashboard
+  const handleCloseProfile = () => {
+    setShowProfile(false);
+    setActivePage("dashboard");
+    window.history.pushState({}, "", "/dashboard");
+  };
+
   const [editingProfile, setEditingProfile] = useState(false);
 
   const [editName, setEditName] = useState("");
@@ -210,18 +242,12 @@ function App() {
     return badges[type] || badges.lainnya;
   };
 
-  const [user, setUser] = useState(null);
-  const [checkingLogin, setCheckingLogin] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
   // =====================================================
   // ROLE CHECKS — HANYA USER & SUPER ADMIN (Revisi No. 23)
   // =====================================================
   const currentRole = String(user?.role || "").toLowerCase();
 
   const isSuperAdmin = currentRole === "super_admin";
-
-  // Karena admin_unit dan admin sudah dihapus, fungsi admin murni dipegang super_admin
   const isAdmin = currentRole === "super_admin";
 
   const [showUnitKerjaForm, setShowUnitKerjaForm] = useState(false);
@@ -307,7 +333,6 @@ function App() {
     type: "UMUM",
   });
 
-  // ✨ STATE BARU: Logo untuk Link Hub
   const [logoFile, setLogoFile] = useState(null);
   const [removeLogo, setRemoveLogo] = useState(false);
 
@@ -383,6 +408,23 @@ function App() {
       })
       .catch((error) => {
         console.error("Gagal mengambil Link Hub:", error);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const isNotFoundParam = urlParams.has("not_found");
+
+        if (!isNotFoundParam) {
+          // ✨ TAMPILKAN ANIMASI DULU ✨
+          setRedirectUrl(`${API_URL}/${shortCode}`);
+          setIsRedirecting(true);
+
+          // Tunggu 1.5 detik agar animasi terlihat
+          setTimeout(() => {
+            window.location.replace(`${API_URL}/${shortCode}?not_found=1`);
+          }, 1500);
+
+          return;
+        }
+
         setPublicHubError("Alamat Tidak Ditemukan");
         setPublicHubLoading(false);
       });
@@ -1807,8 +1849,9 @@ function App() {
     setShowEditUserForm(false);
     setShowLinkHubForm(false);
     setEditingUserId(null);
+    setShowProfile(false); // Pastikan profil tertutup saat logout
 
-    window.history.pushState({}, "", "/");
+    window.history.pushState({}, "", "/login");
   };
 
   // =====================================================
@@ -2200,7 +2243,7 @@ function App() {
         throw new Error(errorMessage || "Gagal membuat short URL");
       }
 
-      setShortUrl(`${API_URL}/${result.data.short_code}`);
+      setShortUrl(`${window.location.origin}/${result.data.short_code}`);
       setShortLinks((prevLinks) => [result.data, ...prevLinks]);
       setUrl("");
       setAlias("");
@@ -2304,7 +2347,7 @@ function App() {
         ),
       );
 
-      setShortUrl(`${API_URL}/${result.data.short_code}`);
+      setShortUrl(`${window.location.origin}/${result.data.short_code}`);
       setEditingShortLink(null);
 
       setEditShortLinkForm({
@@ -2354,13 +2397,20 @@ function App() {
   // =====================================================
 
   const downloadQR = (id) => {
-    const canvas = document.querySelector(`#qr-${id}`);
+    // 1. Cari Canvas resolusi raksasa yang disembunyikan (khusus untuk Link/Shortlink)
+    let canvas = document.querySelector(`#qr-download-${id}`);
+
+    // 2. Kalau tidak ada (misal untuk preview Link Hub baru), pakai canvas biasa
+    if (!canvas) {
+      canvas = document.querySelector(`#qr-${id}`);
+    }
 
     if (!canvas) return;
 
     const padding = 20;
     const border = 3;
 
+    // 3. Buat canvas baru untuk menambahkan border putih
     const newCanvas = document.createElement("canvas");
     newCanvas.width = canvas.width + (padding + border) * 2;
     newCanvas.height = canvas.height + (padding + border) * 2;
@@ -2381,6 +2431,7 @@ function App() {
       newCanvas.height - border,
     );
 
+    // 4. Gambar QR dari canvas raksasa ke canvas baru
     ctx.drawImage(
       canvas,
       padding + border,
@@ -2389,6 +2440,7 @@ function App() {
       canvas.height,
     );
 
+    // 5. Download
     const link = document.createElement("a");
     link.download = `QR-Code-${id}.png`;
     link.href = newCanvas.toDataURL("image/png", 1.0);
@@ -2540,7 +2592,7 @@ function App() {
   };
 
   // =====================================================
-  // RENDER LOADING REDIRECT PAGE (SELARAS DENGAN TEMA PENINK)
+  // RENDER LOADING REDIRECT PAGE (DENGAN ANIMASI)
   // =====================================================
   if (isRedirecting) {
     return (
@@ -2548,130 +2600,208 @@ function App() {
         style={{
           minHeight: "100vh",
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          // Background gradasi biru sangat muda, persis seperti halaman login
-          background: "linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%)",
+          backgroundColor: "#ffffff",
           fontFamily: "system-ui, -apple-system, sans-serif",
           padding: "20px",
+          textAlign: "center",
+          position: "relative",
+          overflow: "hidden",
         }}
       >
-        {/* Kartu Putih Bersih */}
+        {/* Animasi CSS */}
+        <style>
+          {`
+            @keyframes fadeUp {
+              from { opacity: 0; transform: translateY(20px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+            @keyframes float {
+              0% { transform: translateY(0px); }
+              50% { transform: translateY(-15px); }
+              100% { transform: translateY(0px); }
+            }
+            @keyframes loadBar {
+              from { width: 0%; }
+              to { width: 100%; }
+            }
+            .anim-fade-up {
+              animation: fadeUp 0.6s ease-out forwards;
+            }
+            .anim-float {
+              animation: float 3s ease-in-out infinite;
+            }
+            .anim-progress {
+              animation: loadBar 1.5s linear forwards;
+            }
+          `}
+        </style>
+
+        {/* Dekorasi Bentuk Biru di Kanan Atas (Meniru Gambar PM) */}
         <div
           style={{
-            backgroundColor: "#ffffff",
-            padding: "56px 48px",
-            borderRadius: "24px",
-            boxShadow: "0 20px 40px -10px rgba(0, 0, 0, 0.08)",
-            border: "1px solid #f1f5f9",
-            textAlign: "center",
-            maxWidth: "440px",
+            position: "absolute",
+            top: 0,
+            right: 0,
+            width: "400px",
+            height: "400px",
+            background: "linear-gradient(135deg, transparent 50%, #bfdbfe 50%)",
+            zIndex: 0,
+            opacity: 0.5,
+          }}
+        />
+
+        <div
+          style={{
+            position: "relative",
+            zIndex: 1,
+            maxWidth: "650px",
             width: "100%",
           }}
         >
-          {/* Dual-Ring Spinner Biru PENINK */}
+          {/* Teks Pengalihan */}
           <div
-            style={{
-              position: "relative",
-              width: "64px",
-              height: "64px",
-              margin: "0 auto 32px auto",
-            }}
+            className="anim-fade-up"
+            style={{ animationDelay: "0.1s", opacity: 0 }}
           >
-            {/* Lingkaran Luar */}
-            <div
+            <p
               style={{
-                position: "absolute",
-                inset: 0,
-                border: "4px solid #eff6ff", // Biru sangat muda
-                borderTopColor: "#3b82f6", // Biru PENINK
-                borderRadius: "50%",
-                animation: "spin 1s linear infinite",
-              }}
-            ></div>
-            {/* Lingkaran Dalam */}
-            <div
-              style={{
-                position: "absolute",
-                inset: "8px",
-                border: "3px solid transparent",
-                borderBottomColor: "#60a5fa", // Biru muda
-                borderRadius: "50%",
-                animation: "spinReverse 1.5s linear infinite",
-              }}
-            ></div>
-          </div>
-
-          <h2
-            style={{
-              fontSize: "22px",
-              fontWeight: "800",
-              color: "#1e293b", // Warna teks heading PENINK
-              margin: "0 0 12px 0",
-              letterSpacing: "-0.5px",
-            }}
-          >
-            Mengalihkan Anda...
-          </h2>
-          <p
-            style={{
-              fontSize: "15px",
-              color: "#64748b", // Warna teks abu-abu PENINK
-              margin: "0 0 24px 0",
-              lineHeight: "1.6",
-            }}
-          >
-            Sistem sedang mengarahkan Anda ke halaman tujuan. Mohon tunggu
-            sebentar.
-          </p>
-
-          {/* Badge URL Tujuan (Putih Abu-abu) */}
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              backgroundColor: "#f8fafc",
-              padding: "8px 16px",
-              borderRadius: "999px",
-              border: "1px solid #e2e8f0",
-            }}
-          >
-            <span
-              style={{
-                display: "inline-block",
-                width: "8px",
-                height: "8px",
-                backgroundColor: "#10b981", // Titik hijau
-                borderRadius: "50%",
-                marginRight: "10px",
-              }}
-            ></span>
-            <span
-              style={{
-                fontSize: "13px",
-                color: "#475569",
-                fontWeight: "600",
-                maxWidth: "240px",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
+                fontSize: "16px",
+                color: "#334155",
+                marginBottom: "15px",
+                lineHeight: "1.6",
               }}
             >
-              {redirectUrl ? new URL(redirectUrl).hostname : "Memuat..."}
-            </span>
+              Anda akan segera dialihkan ke{" "}
+              <a
+                href={redirectUrl}
+                style={{
+                  color: "#2563eb",
+                  textDecoration: "underline",
+                  wordBreak: "break-all",
+                }}
+              >
+                {redirectUrl}
+              </a>{" "}
+              dalam beberapa detik...
+            </p>
+
+            {/* Progress Bar Animasi */}
+            <div
+              style={{
+                width: "100%",
+                maxWidth: "400px",
+                height: "6px",
+                backgroundColor: "#e2e8f0",
+                borderRadius: "10px",
+                margin: "0 auto 30px auto",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                className="anim-progress"
+                style={{
+                  height: "100%",
+                  backgroundColor: "#2563eb",
+                  borderRadius: "10px",
+                }}
+              ></div>
+            </div>
           </div>
 
-          {/* Animasi CSS */}
-          <style>
-            {`
-              @keyframes spin {
-                to { transform: rotate(360deg); }
-              }
-              @keyframes spinReverse {
-                to { transform: rotate(-360deg); }
-              }
-            `}
-          </style>
+          {/* Ilustrasi Melayang (Menggunakan SVG Murni) */}
+          <div
+            className="anim-fade-up"
+            style={{
+              animationDelay: "0.3s",
+              opacity: 0,
+              margin: "20px 0 40px 0",
+            }}
+          >
+            <div className="anim-float">
+              <svg
+                width="250"
+                height="200"
+                viewBox="0 0 200 160"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                {/* Lingkaran Latar Belakang */}
+                <circle cx="100" cy="80" r="70" fill="#EFF6FF" />
+
+                {/* Gambar Jaringan / Node */}
+                <path
+                  d="M50 80 L100 40 L150 80 L100 120 Z"
+                  stroke="#3B82F6"
+                  strokeWidth="3"
+                  strokeLinejoin="round"
+                />
+                <circle cx="100" cy="40" r="8" fill="#3B82F6" />
+                <circle cx="50" cy="80" r="8" fill="#3B82F6" />
+                <circle cx="150" cy="80" r="8" fill="#3B82F6" />
+                <circle cx="100" cy="120" r="8" fill="#3B82F6" />
+                <circle cx="100" cy="80" r="12" fill="#1D4ED8" />
+
+                {/* Efek Garis Melengkung */}
+                <path
+                  d="M20 40 C 40 20, 60 20, 80 40"
+                  stroke="#93C5FD"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M120 120 C 140 140, 160 140, 180 120"
+                  stroke="#93C5FD"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
+          </div>
+
+          {/* Tombol Manual */}
+          <div
+            className="anim-fade-up"
+            style={{ animationDelay: "0.5s", opacity: 0 }}
+          >
+            <p
+              style={{
+                fontSize: "14px",
+                color: "#475569",
+                marginBottom: "15px",
+              }}
+            >
+              Apabila anda tidak dialihkan, silakan klik tombol di bawah:
+            </p>
+
+            <a
+              href={redirectUrl}
+              style={{
+                display: "inline-block",
+                backgroundColor: "#2563eb",
+                color: "#ffffff",
+                textDecoration: "none",
+                padding: "12px 36px",
+                borderRadius: "8px",
+                fontWeight: "600",
+                fontSize: "15px",
+                transition: "all 0.2s ease",
+                boxShadow: "0 4px 12px rgba(37, 99, 235, 0.3)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#1d4ed8";
+                e.currentTarget.style.transform = "translateY(-2px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "#2563eb";
+                e.currentTarget.style.transform = "translateY(0)";
+              }}
+            >
+              Menuju Link
+            </a>
+          </div>
         </div>
       </div>
     );
@@ -2682,13 +2812,13 @@ function App() {
   // =====================================================
   const renderPublicHub = () => {
     if (publicHubLoading) {
+      // ✨ KOSONGKAN LAYAR AGAR TIDAK ADA DOUBLE LOADING ✨
+      // Biarkan layar putih/gradasi sebentar sebelum animasi muncul
       return (
-        <div className="pub">
-          <div className="pub__loading">
-            <div className="pub__spinner" />
-            <p>Memuat Link Hub...</p>
-          </div>
-        </div>
+        <div
+          className="pub"
+          style={{ backgroundColor: "#f8fafc", minHeight: "100vh" }}
+        ></div>
       );
     }
 
@@ -2901,15 +3031,16 @@ function App() {
             </div>
 
             <div className="pub__hero-content">
-              <div className="pub__logo-wrap">
-                <img
-                  src={publicHub.logo_url || "/Lambang_Kabupaten_Landak.png"}
-                  alt={`Logo ${publicHub.title}`}
-                  className="pub__logo"
-                />
-              </div>
-
-              <span className="pub__badge">✨ PENINK • LINK HUB</span>
+              {/* ✨ Hanya tampilkan logo jika user mengunggahnya ✨ */}
+              {publicHub.logo_url && (
+                <div className="pub__logo-wrap">
+                  <img
+                    src={publicHub.logo_url}
+                    alt={`Logo ${publicHub.title}`}
+                    className="pub__logo"
+                  />
+                </div>
+              )}
 
               <h1 className="pub__title">{publicHub.title}</h1>
 
@@ -3122,7 +3253,8 @@ function App() {
           isSuperAdmin={isSuperAdmin}
           onMenuClick={() => setSidebarOpen(true)}
           onProfileClick={() => {
-            navigateTo("dashboard", false);
+            // ✨ Ubah URL menjadi /profile, bukan /dashboard ✨
+            window.history.pushState({}, "", "/profile");
             setShowProfile(true);
           }}
         />
@@ -3163,7 +3295,7 @@ function App() {
                   setShowConfirmNewPassword={setShowConfirmNewPassword}
                   handleChangePassword={handleChangePassword}
                   handleUpdateProfile={handleUpdateProfile}
-                  setShowProfile={setShowProfile}
+                  setShowProfile={handleCloseProfile}
                 />
               ) : (
                 <>

@@ -14,6 +14,7 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
+  Cell,
   CartesianGrid,
   XAxis,
   YAxis,
@@ -66,7 +67,13 @@ function Dashboard({
         icon: MousePointerClick,
         color: "orange",
       },
-      { label: "QR di-scan", value: qrScans ?? 0, icon: QrCode, color: "red" },
+
+      {
+        label: "Total QR Scan",
+        value: qrScans ?? 0,
+        icon: QrCode,
+        color: "red",
+      },
     ];
 
     const unitChartData = (adminStats?.short_links_by_unit || []).map(
@@ -178,12 +185,18 @@ function Dashboard({
                       fontSize: "13px",
                     }}
                   />
-                  <Bar
-                    dataKey="jumlah"
-                    fill="#0F766E"
-                    radius={[0, 8, 8, 0]}
-                    barSize={22}
-                  />
+                  <Bar dataKey="jumlah" radius={[0, 8, 8, 0]} barSize={22}>
+                    {unitChartData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={
+                          entry.unit === "Belum Memilih Unit Kerja"
+                            ? "#94A3B8"
+                            : "#F59E0B"
+                        }
+                      />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             ) : (

@@ -7,6 +7,8 @@ import {
   X,
   Shield,
   Trash2,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import "./Users.css";
 
@@ -216,7 +218,11 @@ function Users({
                     className="us__password-toggle"
                     onClick={() => setShowUserPassword(!showUserPassword)}
                   >
-                    {showUserPassword ? "🙈" : "👁️"}
+                    {showUserPassword ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
                   </button>
                 </div>
               </div>
@@ -231,7 +237,7 @@ function Users({
                   }
                 >
                   <option value="UMUM">UMUM</option>
-                  <option value="ASN">ASN</option>
+                  <option value="ASN">ASN Pemerintah Kabupaten Landak</option>
                 </select>
               </div>
             </div>
@@ -421,7 +427,11 @@ function Users({
                       setShowEditUserPassword(!showEditUserPassword)
                     }
                   >
-                    {showEditUserPassword ? "🙈" : "👁️"}
+                    {showEditUserPassword ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
                   </button>
                 </div>
               </div>
@@ -439,7 +449,7 @@ function Users({
                   }
                 >
                   <option value="UMUM">UMUM</option>
-                  <option value="ASN">ASN</option>
+                  <option value="ASN">ASN Pemerintah Kabupaten Landak</option>
                 </select>
               </div>
             </div>

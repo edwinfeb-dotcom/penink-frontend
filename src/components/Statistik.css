@@ -18,7 +18,6 @@
   text-align: center;
 }
 
-
 /* HEADER */
 
 .st__header {
@@ -43,7 +42,6 @@
   color: var(--color-gray);
 }
 
-
 /* STAT CARDS */
 
 .st__stats {
@@ -57,11 +55,13 @@
   align-items: center;
   gap: var(--space-4);
   padding: var(--space-5);
-  background: #FFFFFF;
+  background: #ffffff;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
-  transition: transform 0.15s ease, box-shadow 0.18s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.18s ease;
 }
 
 .st-stat:hover {
@@ -77,7 +77,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 .st-stat__body {
@@ -102,52 +102,59 @@
   letter-spacing: -0.5px;
 }
 
+/* =====================================================
+   WARNA IKON STATISTIK (PALET WARNA LOGO LANDAK)
+   ===================================================== */
+
+/* Biru Navy (Perisai Utama) */
 .st-stat--blue .st-stat__icon {
-  background: linear-gradient(135deg, #3B82F6, #2563EB);
+  background: linear-gradient(135deg, #1e3a8a, #2563eb); /* Navy ke Biru */
 }
+
+/* Indigo (Tetap dipertahankan sebagai warna pendukung) */
 .st-stat--indigo .st-stat__icon {
-  background: linear-gradient(135deg, #6366F1, #4F46E5);
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
 }
+
+/* Hijau (Latar Perisai) */
 .st-stat--green .st-stat__icon {
-  background: linear-gradient(135deg, #10B981, #059669);
+  background: linear-gradient(135deg, #10b981, #059669);
 }
-.st-stat--red .st-stat__icon {
-  background: linear-gradient(135deg, #EF4444, #DC2626);
+
+/* Merah (Perisai Atas) */
+.st-stat--red .st-stat__icon,
+.st-stat--rose .st-stat__icon {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
   color: #ffffff;
 }
-.st-stat--orange .st-stat__icon {
-  background: linear-gradient(135deg, #F59E0B, #D97706);
+
+/* Emas / Kuning (Bintang & Padi) */
+.st-stat--orange .st-stat__icon,
+.st-stat--amber .st-stat__icon {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #ffffff;
 }
+
+/* Biru Muda / Cyan (Gunung & Air) */
 .st-stat--cyan .st-stat__icon {
-  background: linear-gradient(135deg, #06B6D4, #0891B2);
+  background: linear-gradient(135deg, #06b6d4, #0891b2);
 }
+
+/* Warna Pendukung Lainnya */
 .st-stat--pink .st-stat__icon {
-  background: linear-gradient(135deg, #EC4899, #DB2777);
+  background: linear-gradient(135deg, #ec4899, #db2777);
 }
 .st-stat--teal .st-stat__icon {
-  background: linear-gradient(135deg, #14B8A6, #0D9488);
+  background: linear-gradient(135deg, #14b8a6, #0d9488);
 }
-/* Warna baru */
-.st-stat--amber .st-stat__icon {
-  background: linear-gradient(135deg, #F59E0B, #D97706);
-  color: #ffffff;
-}
-
 .st-stat--purple .st-stat__icon {
-  background: linear-gradient(135deg, #A855F7, #9333EA);
+  background: linear-gradient(135deg, #a855f7, #9333ea);
   color: #ffffff;
 }
-
 .st-stat--slate .st-stat__icon {
-  background: linear-gradient(135deg, #64748B, #475569);
+  background: linear-gradient(135deg, #64748b, #475569);
   color: #ffffff;
 }
-
-.st-stat--rose .st-stat__icon {
-  background: linear-gradient(135deg, #F43F5E, #E11D48);
-  color: #ffffff;
-}
-
 
 /* INFO CARD (USER) */
 
@@ -157,14 +164,14 @@
   display: flex;
   gap: var(--space-4);
   padding: var(--space-5);
-  background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);
+  background: linear-gradient(135deg, #1e3a8a 0%, #06b6d4 100%);
   border-radius: var(--radius-lg);
-  color: #FFFFFF;
+  color: #ffffff;
   box-shadow: 0 10px 30px -10px rgba(30, 58, 138, 0.35);
 }
 
 .st__info::before {
-  content: '';
+  content: "";
   position: absolute;
   width: 220px;
   height: 220px;
@@ -183,8 +190,8 @@
   flex-shrink: 0;
   border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.20);
-  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -201,26 +208,25 @@
   display: block;
   font-size: var(--font-size-md);
   font-weight: 700;
-  color: #FFFFFF;
+  color: #ffffff;
   margin-bottom: 8px;
 }
 
 .st__info-body p {
   margin: 4px 0;
   font-size: var(--font-size-base);
-  color: rgba(255, 255, 255, 0.90);
+  color: rgba(255, 255, 255, 0.9);
   line-height: 1.5;
 }
 
 .st__info-body b {
-  color: #FFFFFF;
+  color: #ffffff;
 }
-
 
 /* CHART CARD */
 
 .st__chart-card {
-  background: #FFFFFF;
+  background: #ffffff;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: var(--space-6);
@@ -255,7 +261,6 @@
   width: 100%;
 }
 
-
 /* FILTER */
 
 .st__filter {
@@ -284,11 +289,10 @@
 }
 
 .st__filter-btn--active {
-  background: #FFFFFF;
+  background: #ffffff;
   color: var(--color-primary);
   box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
 }
-
 
 /* EMPTY */
 
@@ -298,7 +302,6 @@
   color: var(--color-gray);
   font-size: var(--font-size-md);
 }
-
 
 /* RESPONSIVE */
 

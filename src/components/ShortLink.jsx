@@ -227,18 +227,20 @@ function ShortLink({
             </div>
 
             <div className="sl__qr-wrapper">
+              {/* ✨ UKURAN QR DIPERBESAR MENJADI 1500 UNTUK HASIL DOWNLOAD HD ✨ */}
               <QRCodeCanvas
                 id="qr-code"
                 value={`${shortUrl}?source=qr`}
-                size={400}
+                size={1500}
                 level="H"
+                style={{ width: "200px", height: "200px" }} // Tetap kecil di layar
                 bgColor="#ffffff"
                 fgColor="#000000"
                 includeMargin={true}
                 imageSettings={{
                   src: "/Lambang_Kabupaten_Landak.png",
-                  height: 80,
-                  width: 68,
+                  height: 300, // Proporsi logo menyesuaikan size 1500
+                  width: 250,
                   excavate: true,
                 }}
               />
@@ -379,8 +381,6 @@ function ShortLink({
           <div className="sl__list">
             {filteredLinks.map((link) => {
               // ✨ LOGIKA REVISI NO. 24 ✨
-              // Cek apakah user adalah pemilik link, atau Super Admin
-              // (Sesuaikan 'link.user_id' dengan field dari API jika berbeda)
               const isOwner =
                 String(link.user_id) === String(user?.id) ||
                 String(link.user?.id) === String(user?.id);
@@ -405,12 +405,12 @@ function ShortLink({
                     </div>
 
                     <a
-                      href={`${API_URL}/${link.short_code}`}
+                      href={`${window.location.origin}/${link.short_code}`}
                       target="_blank"
                       rel="noreferrer"
                       className="sl__item-url"
                     >
-                      {API_URL}/{link.short_code}
+                      {window.location.origin}/{link.short_code}
                       <ExternalLink size={12} />
                     </a>
 
@@ -423,7 +423,6 @@ function ShortLink({
                   </div>
 
                   <div className="sl__item-actions">
-                    {/* Tombol Edit & Kelola HANYA muncul jika canManage bernilai true */}
                     {canManage && (
                       <>
                         <button
@@ -437,14 +436,13 @@ function ShortLink({
                       </>
                     )}
 
-                    {/* Tombol Copy & QR SELALU muncul untuk semua user (termasuk ASN lain) */}
                     <button
                       type="button"
                       className="sl__icon-btn"
                       title="Copy"
                       onClick={() => {
                         navigator.clipboard.writeText(
-                          `${API_URL}/${link.short_code}`,
+                          `${window.location.origin}/${link.short_code}`,
                         );
                         toast.success("Link berhasil disalin");
                       }}
@@ -463,7 +461,6 @@ function ShortLink({
                       <QrCode size={15} />
                     </button>
 
-                    {/* Tombol Toggle & Hapus HANYA muncul jika canManage bernilai true */}
                     {canManage && (
                       <>
                         <button
@@ -491,15 +488,17 @@ function ShortLink({
 
                   {showQrId === link.id && (
                     <div className="sl__qr-popup">
+                      {/* ✨ UKURAN QR DIPERBESAR MENJADI 1500 UNTUK HASIL DOWNLOAD HD ✨ */}
                       <QRCodeCanvas
                         id={`qr-${link.id}`}
-                        value={`${API_URL}/${link.short_code}?source=qr`}
-                        size={400}
+                        value={`${window.location.origin}/${link.short_code}?source=qr`}
+                        size={1500}
                         level="H"
+                        style={{ width: "200px", height: "200px" }} // Tetap kecil di layar
                         imageSettings={{
                           src: "/Lambang_Kabupaten_Landak.png",
-                          height: 80,
-                          width: 68,
+                          height: 300, // Proporsi logo menyesuaikan size 1500
+                          width: 250,
                           excavate: true,
                         }}
                       />

@@ -32,7 +32,7 @@
   overflow: hidden;
   border-radius: var(--radius-xl);
   padding: var(--space-8) var(--space-10);
-  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+  background: linear-gradient(135deg, #1e3a8a 0%, #059669 100%);
   color: #ffffff;
   box-shadow: 0 10px 30px -10px rgba(30, 58, 138, 0.35);
   text-align: left;
@@ -232,38 +232,48 @@
   letter-spacing: -0.5px;
 }
 
-/* WARNA ICON PER KATEGORI */
+/* =====================================================
+   WARNA IKON STATISTIK (SESUAI LOGO LANDAK)
+   ===================================================== */
 
+/* Biru Navy (Warna Dasar / Formal) */
 .dash-stat--blue .dash-stat__icon {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
 }
 
-.dash-stat--indigo .dash-stat__icon {
-  background: linear-gradient(135deg, #6366f1, #4f46e5);
+/* Emas / Kuning (Melambangkan Bintang & Padi) */
+.dash-stat--orange .dash-stat__icon,
+.dash-stat--amber .dash-stat__icon {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
 }
 
+/* Hijau (Melambangkan Latar Perisai) */
 .dash-stat--green .dash-stat__icon {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
 }
 
-.dash-stat--orange .dash-stat__icon {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+/* Merah (Melambangkan Perisai Atas) */
+.dash-stat--red .dash-stat__icon,
+.dash-stat--rose .dash-stat__icon {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
 }
 
+/* Biru Muda (Melambangkan Air/Gunung) */
 .dash-stat--cyan .dash-stat__icon {
-  background: linear-gradient(135deg, #06b6d4, #0891b2);
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
 }
 
-.dash-stat--pink .dash-stat__icon {
-  background: linear-gradient(135deg, #ec4899, #db2777);
+/* Indigo / Ungu (Warna pendukung) */
+.dash-stat--indigo .dash-stat__icon {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
 }
 
+/* Teal / Pink (Warna pendukung) */
 .dash-stat--teal .dash-stat__icon {
-  background: linear-gradient(135deg, #14b8a6, #0d9488);
+  background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
 }
-
-.dash-stat--red .dash-stat__icon {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
+.dash-stat--pink .dash-stat__icon {
+  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
 }
 
 /* =====================================================
@@ -346,7 +356,7 @@
   padding: 0 var(--space-5);
   border: none;
   border-radius: var(--radius-md);
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   color: #ffffff;
   font-size: var(--font-size-md);
   font-weight: 700;

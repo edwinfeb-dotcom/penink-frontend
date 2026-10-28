@@ -238,7 +238,8 @@
 
 .sidebar__item--active {
   background: var(--color-primary);
-  color: var(--color-white);
+  border-left: 4px solid #ef4444;
+  color: #f59e0b !important;
   font-weight: 600;
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.32);
 }

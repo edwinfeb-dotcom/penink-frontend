@@ -289,7 +289,7 @@ function Login({ onLogin }) {
             </div>
             <div className="login-penink-wrapper">
               <img
-                src="/logo-penink.png"
+                src="/logo-penink-pemendek-link.png"
                 alt="PENINK"
                 className="login-penink-logo"
               />
@@ -419,7 +419,9 @@ function Login({ onLogin }) {
                       }}
                     >
                       <option value="UMUM">UMUM</option>
-                      <option value="ASN">ASN</option>
+                      <option value="ASN">
+                        ASN Pemerintah Kabupaten Landak
+                      </option>
                     </select>
                   </div>
                 )}

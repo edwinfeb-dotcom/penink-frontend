@@ -71,6 +71,9 @@ function LinkHub({
   const [showInfo, setShowInfo] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
 
+  // ✨ STATE BARU UNTUK MENYIMPAN URL PREVIEW GAMBAR ✨
+  const [logoPreviewUrl, setLogoPreviewUrl] = useState(null);
+
   const [manualAlias, setManualAlias] = useState("");
   const [selectedLockedAliasId, setSelectedLockedAliasId] = useState("");
   const [lockedAliases, setLockedAliases] = useState([]);
@@ -116,11 +119,6 @@ function LinkHub({
 
     const hasManual = manualAlias.trim() !== "";
     const hasSelected = selectedLockedAliasId !== "";
-
-    if (!hasManual && !hasSelected) {
-      setAliasError("Alias wajib diisi.");
-      return;
-    }
 
     if (hasManual && hasSelected) {
       setAliasError(
@@ -182,16 +180,21 @@ function LinkHub({
 
     setLogoFile(file);
     setRemoveLogo(false);
+
+    // ✨ MENGGUNAKAN FILEREADER AGAR GAMBAR PASTI MUNCUL ✨
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setLogoPreviewUrl(reader.result);
+    };
+    reader.readAsDataURL(file);
   };
 
-  // Fungsi saat file dipilih lewat tombol input
   const handleLogoChange = (e) => {
     const file = e.target.files[0];
     processLogoFile(file);
-    e.target.value = ""; // Reset input agar bisa pilih file yang sama
+    e.target.value = "";
   };
 
-  // Fungsi Drag & Drop
   const handleDragOver = (e) => {
     e.preventDefault();
     setIsDragging(true);
@@ -228,6 +231,7 @@ function LinkHub({
           onClick={() => {
             setShowLinkHubForm(!showLinkHubForm);
             setEditingLinkHub(null);
+            setLogoPreviewUrl(null);
           }}
         >
           {showLinkHubForm ? <X size={16} /> : <Plus size={16} />}
@@ -297,7 +301,6 @@ function LinkHub({
             {linkHubError && <div className="lh__error">{linkHubError}</div>}
 
             <div className="lh__field">
-              {/* BINTANG MERAH WAJIB ISI */}
               <label>
                 Judul Link Hub <span style={{ color: "red" }}>*</span>
               </label>
@@ -361,13 +364,10 @@ function LinkHub({
                 />
               </label>
 
-              <small className="lh__hint">
-                Kosongkan untuk pakai logo default Diskominfo.
-              </small>
-
-              {logoFile && (
+              {logoFile && logoPreviewUrl && (
                 <div className="lh__logo-preview">
-                  <img src={URL.createObjectURL(logoFile)} alt="Preview Logo" />
+                  {/* ✨ GUNAKAN logoPreviewUrl, BUKAN URL.createObjectURL ✨ */}
+                  <img src={logoPreviewUrl} alt="Preview Logo" />
                   <div className="lh__logo-preview-info">
                     <strong>{logoFile.name}</strong>
                     <span>{(logoFile.size / 1024).toFixed(0)} KB</span>
@@ -375,7 +375,10 @@ function LinkHub({
                   <button
                     type="button"
                     className="lh__logo-remove"
-                    onClick={() => setLogoFile(null)}
+                    onClick={() => {
+                      setLogoFile(null);
+                      setLogoPreviewUrl(null);
+                    }}
                     title="Hapus logo"
                   >
                     <X size={14} />
@@ -385,10 +388,7 @@ function LinkHub({
             </div>
 
             <div className="lh__field">
-              {/* BINTANG MERAH WAJIB ISI */}
-              <label>
-                Alias Custom <span style={{ color: "red" }}>*</span>
-              </label>
+              <label>Alias Custom (opsional)</label>
               <input
                 className="lh__input"
                 type="text"
@@ -400,8 +400,8 @@ function LinkHub({
                 }}
               />
               <small className="lh__hint">
-                Ketik alias sendiri, ATAU pilih dari daftar alias terkunci OPD
-                di bawah.
+                Kosongkan untuk dibuatkan otomatis oleh sistem, ATAU pilih dari
+                daftar alias terkunci OPD di bawah.
               </small>
             </div>
 
@@ -450,7 +450,7 @@ function LinkHub({
                     lockedAliases.find(
                       (a) => a.id === Number(selectedLockedAliasId),
                     )?.alias ||
-                    "alias"}
+                    "(otomatis)"}
                 </b>
               </small>
             </div>
@@ -471,6 +471,7 @@ function LinkHub({
                   setSelectedLockedAliasId("");
                   setAliasError("");
                   setLogoFile(null);
+                  setLogoPreviewUrl(null);
                   setRemoveLogo(false);
                 }}
               >
@@ -513,7 +514,6 @@ function LinkHub({
             )}
 
             <div className="lh__field">
-              {/* BINTANG MERAH WAJIB ISI */}
               <label>
                 Judul <span style={{ color: "red" }}>*</span>
               </label>
@@ -578,16 +578,12 @@ function LinkHub({
                 />
               </label>
 
-              <small className="lh__hint">
-                Kosongkan untuk pakai logo default Diskominfo.
-              </small>
-
               {(logoFile || (editingLinkHub?.logo_url && !removeLogo)) && (
                 <div className="lh__logo-preview">
                   <img
                     src={
                       logoFile
-                        ? URL.createObjectURL(logoFile)
+                        ? logoPreviewUrl // ✨ Gunakan URL preview state
                         : editingLinkHub.logo_url
                     }
                     alt="Preview Logo"
@@ -607,6 +603,7 @@ function LinkHub({
                     className="lh__logo-remove"
                     onClick={() => {
                       setLogoFile(null);
+                      setLogoPreviewUrl(null);
                       setRemoveLogo(true);
                     }}
                     title="Hapus logo"
@@ -635,7 +632,6 @@ function LinkHub({
             </div>
 
             <div className="lh__field">
-              {/* BINTANG MERAH WAJIB ISI */}
               <label>
                 Alias <span style={{ color: "red" }}>*</span>
               </label>
@@ -667,6 +663,7 @@ function LinkHub({
                   });
                   setEditLinkHubError("");
                   setLogoFile(null);
+                  setLogoPreviewUrl(null);
                   setRemoveLogo(false);
                 }}
                 disabled={editLinkHubLoading}
@@ -718,13 +715,16 @@ function LinkHub({
                 <div key={hub.id} className="lh__item">
                   <div className="lh__item-header">
                     <div className="lh__item-main">
-                      <div className="lh__item-logo-wrap">
-                        <img
-                          src={hub.logo_url || "/Lambang_Kabupaten_Landak.png"}
-                          alt={`Logo ${hub.title}`}
-                          className="lh__item-logo"
-                        />
-                      </div>
+                      {/* ✨ Hanya tampilkan logo jika user mengunggahnya ✨ */}
+                      {hub.logo_url && (
+                        <div className="lh__item-logo-wrap">
+                          <img
+                            src={hub.logo_url}
+                            alt={`Logo ${hub.title}`}
+                            className="lh__item-logo"
+                          />
+                        </div>
+                      )}
 
                       <div className="lh__item-text">
                         <div className="lh__item-top">
@@ -769,17 +769,14 @@ function LinkHub({
                     </div>
 
                     <div className="lh__item-meta">
-                      {/* Existing: Jumlah Link */}
                       <div className="lh__meta-item">
                         <strong>{itemCount}</strong>
                         <span>link</span>
                       </div>
-                      {/* ✨ BARU: Jumlah Klik */}
                       <div className="lh__meta-item" title="Total Klik">
                         <strong>{hub.click_count || 0}</strong>
                         <span>klik</span>
                       </div>
-                      {/* ✨ BARU: Jumlah Scan */}
                       <div className="lh__meta-item" title="Total Scan QR">
                         <strong>{hub.scan_count || 0}</strong>
                         <span>scan</span>
@@ -854,15 +851,16 @@ function LinkHub({
                   {showQr && (
                     <div className="lh__qr-wrapper">
                       <QRCodeCanvas
-                        value={`${window.location.origin}/${hub.short_code}?source=qr`} // <--- Tambahkan ?source=qr
-                        size={160}
+                        value={`${window.location.origin}/${hub.short_code}?source=qr`}
+                        size={1500}
                         level="H"
                         includeMargin={true}
                         data-hub-id={hub.id}
+                        style={{ width: "200px", height: "200px" }}
                         imageSettings={{
                           src: "/Lambang_Kabupaten_Landak.png",
-                          height: 36,
-                          width: 30,
+                          height: 300,
+                          width: 250,
                           excavate: true,
                         }}
                       />
@@ -907,7 +905,6 @@ function LinkHub({
                       >
                         <div className="lh__field-row">
                           <div className="lh__field">
-                            {/* BINTANG MERAH WAJIB ISI */}
                             <label>
                               Judul Link <span style={{ color: "red" }}>*</span>
                             </label>
@@ -927,7 +924,6 @@ function LinkHub({
                           </div>
 
                           <div className="lh__field">
-                            {/* BINTANG MERAH WAJIB ISI */}
                             <label>
                               URL <span style={{ color: "red" }}>*</span>
                             </label>
