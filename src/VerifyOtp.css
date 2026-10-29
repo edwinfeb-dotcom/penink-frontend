@@ -1,0 +1,121 @@
+.otp-container {
+    display: flex;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    background-color: #f3f4f6;
+    padding: 20px;
+}
+
+.otp-card {
+    background-color: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 450px;
+    width: 100%;
+}
+
+.otp-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.otp-header h2 {
+    color: #1a2b4c;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.otp-header p {
+    color: #666;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.otp-error {
+    background-color: #fee2e2;
+    color: #dc2626;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.otp-inputs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+.otp-inputs input {
+    width: 45px;
+    height: 55px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: #1a2b4c;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    outline: none;
+    background-color: #fff;
+    transition: all 0.2s;
+}
+
+.otp-inputs input:focus {
+    border-color: #d4af37;
+    box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+}
+
+.otp-inputs input.filled {
+    background-color: #f0fdf4;
+    border-color: #22c55e;
+}
+
+.otp-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #1a2b4c;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.otp-btn:hover:not(:disabled) {
+    background-color: #2a4575;
+}
+
+.otp-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.otp-resend {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+    color: #666;
+}
+
+.otp-timer {
+    color: #999;
+    font-weight: bold;
+}
+
+.otp-resend-btn {
+    color: #d4af37;
+    background: none;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.otp-resend-btn:hover {
+    text-decoration: underline;
+}
